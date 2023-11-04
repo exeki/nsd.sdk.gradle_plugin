@@ -3,42 +3,29 @@ package ru.kazantsev.nsd.sdk.gradle_plugin.extensions
 import org.gradle.api.Project
 import ru.kazantsev.nsd.basic_api_connector.ConnectorParams
 import ru.kazantsev.nsd.sdk.artifact_generator.ArtifactConstants
+import ru.kazantsev.nsd.sdk.artifact_generator.JarGeneratorService
+import ru.kazantsev.nsd.sdk.client.MetainfoUpdateService
 import ru.kazantsev.nsd.sdk.data.DbAccess
+import java.io.File
 
 /**
  * Расширение, отвечающее за генерацию классов
  */
-open class FakeClassesExtension {
+open class FakeClassesExtension(protected val project: Project) {
 
     /**
      * Путь до конфигурационного файла, из которого нужно считать данные для подклчюения
      */
     protected var connectorParamsPath: String? = null
-    protected var needToGenerate: Boolean = false
-    protected var artifactConstants: ArtifactConstants? = null
-    protected var connectorParams: ConnectorParams? = null
-    protected var db: DbAccess? = null
-
-    /**
-     * Будут ли подключены генерация и подключение
-     * артефакта с фейковыми классами
-     */
-    fun needToGenerate(): Boolean {
-        return needToGenerate
-    }
 
     /**
      * Целевое наименование артефакта для полдключения
      */
-    fun getTargetArtifactName(): String? {
-        return if (this.artifactConstants != null) {
-            val group = this.artifactConstants!!.targetArtifactGroup
-            val name = this.artifactConstants!!.targetArtifactName
-            val version = this.artifactConstants!!.targetArtifactVersion
-            "$group:$name:$version"
-        } else {
-            null
-        }
+    fun getTargetArtifactName(artifactConstants: ArtifactConstants): String {
+        val group = artifactConstants.targetArtifactGroup
+        val name = artifactConstants.targetArtifactName
+        val version = artifactConstants.targetArtifactVersion
+        return "$group:$name:$version"
     }
 
     /**
@@ -50,17 +37,15 @@ open class FakeClassesExtension {
      * По умолчанию user.home/nsd_sdk/conf/nsd_connector_params.json
      * @param installationId идентификатор инсталляции
      */
+    //TODO методы не работают
     fun generate(installationId: String) {
-        this.connectorParams = if (connectorParamsPath == null) {
+        val artifactConstants = ArtifactConstants(installationId)
+        val connectorParams: ConnectorParams = if (connectorParamsPath == null) {
             ConnectorParams.byConfigFile(installationId)
         } else {
             ConnectorParams.byConfigFileInPath(installationId, connectorParamsPath)
         }
-
-        this.artifactConstants = ArtifactConstants(installationId)
-        this.connectorParams = ConnectorParams.byConfigFile(installationId)
-        this.db = DbAccess.createDefaultByInstallationId(installationId)
-        this.needToGenerate = true
+        doJar(installationId, connectorParams, artifactConstants)
     }
 
 
@@ -81,15 +66,57 @@ open class FakeClassesExtension {
         accessKey: String,
         ignoreSLL: Boolean
     ) {
-        this.needToGenerate = true
-        this.artifactConstants = ArtifactConstants(installationId)
-        this.db = DbAccess.createDefaultByInstallationId(installationId)
-        this.connectorParams = ConnectorParams(
+        println("метод")
+        val artifactConstants = ArtifactConstants(installationId)
+        val connectorParams = ConnectorParams(
             installationId,
             scheme,
             host,
             accessKey,
             ignoreSLL
         )
+        doJar(installationId, connectorParams, artifactConstants)
+    }
+
+    protected fun doJar(
+        installationId: String,
+        connectorParams: ConnectorParams,
+        artifactConstants: ArtifactConstants
+    ) {
+        var localMavenPath = "${System.getProperty("user.home")}\\.m2\\repository"
+        val localMavenRepository = File(localMavenPath)
+        if (!localMavenRepository.exists()) throw RuntimeException("Local maven repo not exists")
+        localMavenPath = localMavenPath
+            .plus("\\")
+            .plus(artifactConstants.targetArtifactGroup.split('.').joinToString("\\"))
+            .plus("\\")
+            .plus(artifactConstants.targetArtifactName.split('.').joinToString("\\"))
+            .plus("\\")
+            .plus(artifactConstants.targetArtifactVersion)
+
+        val exists: Boolean = File(localMavenPath).exists()
+        println("dependency ${this.getTargetArtifactName(artifactConstants)} exists: $exists")
+        println("in path: $localMavenPath")
+        if (exists) {
+            project.dependencies.add(
+                "implementation",
+                this.getTargetArtifactName(artifactConstants)
+            )
+        } else {
+            println("generating...")
+            val db = DbAccess.createDefaultByInstallationId(installationId)
+            try {
+                MetainfoUpdateService(connectorParams, db).fetchMeta()
+                JarGeneratorService(artifactConstants, db).generate(installationId)
+                project.dependencies.add(
+                    "implementation",
+                    this.getTargetArtifactName(artifactConstants)
+                )
+            } catch (e : Exception) {
+                throw e
+            } finally {
+                db.connection.close()
+            }
+        }
     }
 }
