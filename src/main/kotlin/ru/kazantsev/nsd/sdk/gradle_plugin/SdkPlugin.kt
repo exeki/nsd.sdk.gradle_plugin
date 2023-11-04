@@ -17,7 +17,6 @@ class SdkPlugin : Plugin<Project> {
 
         project.tasks.create("createFakeClasses") {
             project.extensions.getByType(FakeClassesExtension::class.java)
-            println("test task")
         }
     }
 }
