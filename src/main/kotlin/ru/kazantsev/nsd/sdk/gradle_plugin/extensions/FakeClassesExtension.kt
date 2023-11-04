@@ -37,7 +37,6 @@ open class FakeClassesExtension(protected val project: Project) {
      * По умолчанию user.home/nsd_sdk/conf/nsd_connector_params.json
      * @param installationId идентификатор инсталляции
      */
-    //TODO методы не работают
     fun generate(installationId: String) {
         val artifactConstants = ArtifactConstants(installationId)
         val connectorParams: ConnectorParams = if (connectorParamsPath == null) {
