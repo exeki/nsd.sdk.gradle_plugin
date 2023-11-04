@@ -20,8 +20,11 @@ open class FakeClassesExtension(protected val project: Project) {
 
     /**
      * Целевое наименование артефакта для полдключения
+     * @param artifactConstants константы сгенерированного артефакта
+     * @return идентификатор артефакта,
+     * по которому можно подключить сгенерированный артефакт
      */
-    fun getTargetArtifactName(artifactConstants: ArtifactConstants): String {
+    protected fun getTargetArtifactName(artifactConstants: ArtifactConstants): String {
         val group = artifactConstants.targetArtifactGroup
         val name = artifactConstants.targetArtifactName
         val version = artifactConstants.targetArtifactVersion
@@ -44,7 +47,7 @@ open class FakeClassesExtension(protected val project: Project) {
         } else {
             ConnectorParams.byConfigFileInPath(installationId, connectorParamsPath)
         }
-        doJar(installationId, connectorParams, artifactConstants)
+        doJar(connectorParams, artifactConstants)
     }
 
 
@@ -65,7 +68,6 @@ open class FakeClassesExtension(protected val project: Project) {
         accessKey: String,
         ignoreSLL: Boolean
     ) {
-        println("метод")
         val artifactConstants = ArtifactConstants(installationId)
         val connectorParams = ConnectorParams(
             installationId,
@@ -74,11 +76,15 @@ open class FakeClassesExtension(protected val project: Project) {
             accessKey,
             ignoreSLL
         )
-        doJar(installationId, connectorParams, artifactConstants)
+        doJar(connectorParams, artifactConstants)
     }
 
+    /**
+     * Сгенерировать артефакт
+     * @param connectorParams параметры подключения
+     * @param artifactConstants константы артфакта
+     */
     protected fun doJar(
-        installationId: String,
         connectorParams: ConnectorParams,
         artifactConstants: ArtifactConstants
     ) {
@@ -103,10 +109,10 @@ open class FakeClassesExtension(protected val project: Project) {
             )
         } else {
             println("generating...")
-            val db = DbAccess.createDefaultByInstallationId(installationId)
+            val db = DbAccess.createDefaultByInstallationId(connectorParams.userId)
             try {
                 MetainfoUpdateService(connectorParams, db).fetchMeta()
-                JarGeneratorService(artifactConstants, db).generate(installationId)
+                JarGeneratorService(artifactConstants, db).generate(connectorParams.userId)
                 project.dependencies.add(
                     "implementation",
                     this.getTargetArtifactName(artifactConstants)
