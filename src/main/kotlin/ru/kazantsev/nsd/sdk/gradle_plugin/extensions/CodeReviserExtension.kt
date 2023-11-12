@@ -8,14 +8,14 @@ open class CodeReviserExtension(private val project: Project, private val fakeCl
         private const val fakeClassesRealName = "IScriptDtObject"
     }
 
-    var processPath: String = "src/main"
+    var srcPath: String = "src/main"
     var outPath: String = "sdk/out"
     private val processDir: File
     private val outDir: File
 
     init {
         val projectDir = project.projectDir.path
-        this.processDir = File("$projectDir\\$processPath")
+        this.processDir = File("$projectDir\\$srcPath")
         this.outDir = File("$projectDir\\${this.outPath}")
         project.task("sdk_build_src") {
             it.group = "nsd_sdk"
