@@ -7,6 +7,7 @@ import ru.kazantsev.nsd.sdk.artifact_generator.JarGeneratorService
 import ru.kazantsev.nsd.sdk.client.MetainfoUpdateService
 import ru.kazantsev.nsd.sdk.data.DbAccess
 import java.io.File
+import java.net.URLClassLoader
 
 /**
  * Расширение, отвечающее за генерацию классов
@@ -14,9 +15,30 @@ import java.io.File
 open class FakeClassesExtension(protected val project: Project) {
 
     /**
+     * Класс зависимости фейковых классов, в которо
+     */
+    private var fakeClassesMetainfoClassName : String? = null
+
+    /**
+     * Метод получения наименования сгенерированных классов
+     */
+    private val fakeClassesMetainfoClassMethodName = "getGeneratedClassNames"
+
+    /**
+     * Признак того, что зависимость добавлена
+     */
+    var fakeClassesDependencyAdded = false
+
+    /**
+     * Перечень сгенерированных классов
+     */
+    var generatedClassNames: List<String>? = null
+        private set
+
+    /**
      * Путь до конфигурационного файла, из которого нужно считать данные для подклчюения
      */
-    protected var connectorParamsPath: String? = null
+    private var connectorParamsPath: String? = null
 
     /**
      * Целевое наименование артефакта для полдключения
@@ -24,7 +46,7 @@ open class FakeClassesExtension(protected val project: Project) {
      * @return идентификатор артефакта,
      * по которому можно подключить сгенерированный артефакт
      */
-    protected fun getTargetArtifactName(artifactConstants: ArtifactConstants): String {
+    private fun getTargetArtifactName(artifactConstants: ArtifactConstants): String {
         val group = artifactConstants.targetArtifactGroup
         val name = artifactConstants.targetArtifactName
         val version = artifactConstants.targetArtifactVersion
@@ -47,7 +69,7 @@ open class FakeClassesExtension(protected val project: Project) {
         } else {
             ConnectorParams.byConfigFileInPath(installationId, connectorParamsPath)
         }
-        doJar(connectorParams, artifactConstants)
+        generateDependency(connectorParams, artifactConstants)
     }
 
 
@@ -76,7 +98,7 @@ open class FakeClassesExtension(protected val project: Project) {
             accessKey,
             ignoreSLL
         )
-        doJar(connectorParams, artifactConstants)
+        generateDependency(connectorParams, artifactConstants)
     }
 
     /**
@@ -84,7 +106,7 @@ open class FakeClassesExtension(protected val project: Project) {
      * @param connectorParams параметры подключения
      * @param artifactConstants константы артфакта
      */
-    protected fun doJar(
+    protected fun generateDependency(
         connectorParams: ConnectorParams,
         artifactConstants: ArtifactConstants
     ) {
@@ -100,28 +122,39 @@ open class FakeClassesExtension(protected val project: Project) {
             .plus(artifactConstants.targetArtifactVersion)
 
         val exists: Boolean = File(localMavenPath).exists()
-        println("dependency ${this.getTargetArtifactName(artifactConstants)} exists: $exists")
         println("in path: $localMavenPath")
+        println("dependency ${this.getTargetArtifactName(artifactConstants)} exists: $exists")
         if (exists) {
+            println("connecting...")
             project.dependencies.add(
                 "implementation",
                 this.getTargetArtifactName(artifactConstants)
             )
+            println("dependency added")
         } else {
             println("generating...")
             val db = DbAccess.createDefaultByInstallationId(connectorParams.userId)
             try {
+                println("connecting...")
                 MetainfoUpdateService(connectorParams, db).fetchMeta()
                 JarGeneratorService(artifactConstants, db).generate(connectorParams.userId)
                 project.dependencies.add(
                     "implementation",
                     this.getTargetArtifactName(artifactConstants)
                 )
+                println("dependency added")
             } catch (e : Exception) {
                 throw e
             } finally {
                 db.connection.close()
             }
         }
+        this.fakeClassesDependencyAdded = true
+        this.fakeClassesMetainfoClassName = "${artifactConstants.generatedMetaClassPackage}.${artifactConstants.generatedMetaClassName}"
+        val config = project.configurations.findByName("runtimeClasspath")
+        val classLoader = URLClassLoader(config!!.files.map { it.toURI().toURL() }.toTypedArray())
+        val cl = Class.forName(fakeClassesMetainfoClassName, false, classLoader)
+        val declaredMethod = cl.getDeclaredMethod(fakeClassesMetainfoClassMethodName)
+        this.generatedClassNames = declaredMethod.invoke(cl) as List<String>
     }
 }
