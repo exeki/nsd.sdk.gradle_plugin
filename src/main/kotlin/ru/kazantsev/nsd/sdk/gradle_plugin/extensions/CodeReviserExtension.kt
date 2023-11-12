@@ -17,7 +17,7 @@ open class CodeReviserExtension(private val project: Project, private val fakeCl
         val projectDir = project.projectDir.path
         this.processDir = File("$projectDir\\$srcPath")
         this.outDir = File("$projectDir\\${this.outPath}")
-        project.task("sdk_build_src") {
+        project.task("build_src") {
             it.group = "nsd_sdk"
             it.description = "Creates files from all sources in the " +
                     "specified directory with code ready to be placed in NSD"
@@ -40,7 +40,6 @@ open class CodeReviserExtension(private val project: Project, private val fakeCl
         directory.listFiles().forEach { file ->
             if (file.isDirectory) throw RuntimeException("Directories not allowed in module package")
         }
-
     }
 
     private fun processFile(file: File) {
