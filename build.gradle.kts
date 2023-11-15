@@ -20,7 +20,7 @@ gradlePlugin {
         create("nsd-sdk") {
             id = "ru.kazantsev.nsd.sdk.gradle_plugin"
             version = "1.0.0"
-            implementationClass = "ru.kazantsev.nsd.sdk.gradle_plugin.SdkPlugin"
+            implementationClass = "ru.kazantsev.nsd.sdk.gradle_plugin.Plugin"
         }
     }
 }

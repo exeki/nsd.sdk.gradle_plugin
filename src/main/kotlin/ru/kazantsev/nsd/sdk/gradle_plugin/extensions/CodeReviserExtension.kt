@@ -1,9 +1,10 @@
 package ru.kazantsev.nsd.sdk.gradle_plugin.extensions
 
 import org.gradle.api.Project
+import ru.kazantsev.nsd.sdk.gradle_plugin.services.SingletonNavigatorService
 import java.io.File
 
-open class CodeReviserExtension(private val project: Project, private val fakeClassesExtension: FakeClassesExtension) {
+open class CodeReviserExtension(private val project: Project) {
     companion object {
         private const val fakeClassesRealName = "IScriptDtObject"
     }
@@ -55,10 +56,11 @@ open class CodeReviserExtension(private val project: Project, private val fakeCl
             val targetFile = File("${this.outDir.path}\\$filePath")
             targetFile.parentFile.mkdirs()
             var text = file.readText()
-            if (fakeClassesExtension.generatedClassNames == null || fakeClassesExtension.generatedClassNames?.size == 0) {
+            val generatedClassNames = SingletonNavigatorService.metainfoService!!.getGeneratedClassNames()
+            if (generatedClassNames.isEmpty()) {
                 throw RuntimeException("Cant find generatedClassNames in fakeClassesExtension")
             }
-            fakeClassesExtension.generatedClassNames?.forEach {
+            generatedClassNames.forEach {
                 text = text.replace(it, fakeClassesRealName)
             }
             targetFile.writeText(text)

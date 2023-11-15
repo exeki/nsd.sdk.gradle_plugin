@@ -6,31 +6,15 @@ import ru.kazantsev.nsd.sdk.artifact_generator.ArtifactConstants
 import ru.kazantsev.nsd.sdk.artifact_generator.JarGeneratorService
 import ru.kazantsev.nsd.sdk.client.MetainfoUpdateService
 import ru.kazantsev.nsd.sdk.data.DbAccess
+import ru.kazantsev.nsd.sdk.gradle_plugin.services.SingletonNavigatorService
 import java.io.File
-import java.net.URLClassLoader
 
 /**
  * Расширение, отвечающее за генерацию классов
  */
 open class FakeClassesExtension(protected val project: Project) {
 
-    /**
-     * Класс зависимости фейковых классов, в которо
-     */
-    private var fakeClassesMetainfoClassName : String? = null
-
-    /**
-     * Метод получения наименования сгенерированных классов
-     */
-    private val fakeClassesMetainfoClassMethodName = "getGeneratedClassNames"
-
-    /**
-     * Признак того, что зависимость добавлена
-     */
-    var fakeClassesDependencyAdded = false
-        private set
-
-    private var connectorParams : ConnectorParams? = null
+    private var connectorParams: ConnectorParams? = null
 
     /**
      * Перечень сгенерированных классов
@@ -38,7 +22,10 @@ open class FakeClassesExtension(protected val project: Project) {
     var generatedClassNames: List<String>? = null
         private set
 
-    private var artifactConstants : ArtifactConstants? = null
+    private var artifactConstants: ArtifactConstants? = null
+
+    var installationId: String? = null
+        private set
 
 
     /**
@@ -48,12 +35,11 @@ open class FakeClassesExtension(protected val project: Project) {
 
     /**
      * Целевое наименование артефакта для полдключения
-     * @param artifactConstants константы сгенерированного артефакта
      * @return идентификатор артефакта,
      * по которому можно подключить сгенерированный артефакт
      */
     private fun getTargetArtifactName(): String {
-        if(this.artifactConstants == null) throw RuntimeException("Cant find artifactConstants")
+        if (this.artifactConstants == null) throw RuntimeException("Cant find artifactConstants")
         val group = artifactConstants!!.targetArtifactGroup
         val name = artifactConstants!!.targetArtifactName
         val version = artifactConstants!!.targetArtifactVersion
@@ -70,6 +56,7 @@ open class FakeClassesExtension(protected val project: Project) {
      * @param installationId идентификатор инсталляции
      */
     fun generate(installationId: String) {
+        this.installationId = installationId
         this.artifactConstants = ArtifactConstants(installationId)
         this.connectorParams = if (connectorParamsPath == null) {
             ConnectorParams.byConfigFile(installationId)
@@ -114,8 +101,8 @@ open class FakeClassesExtension(protected val project: Project) {
      * иначе исключение
      */
     protected fun generateAndAddDependency() {
-        if(this.artifactConstants == null) throw RuntimeException("Cant find artifactConstants")
-        if(this.connectorParams == null) throw RuntimeException("Cant find connectorParams")
+        if (this.artifactConstants == null) throw RuntimeException("Cant find artifactConstants")
+        if (this.connectorParams == null) throw RuntimeException("Cant find connectorParams")
 
         var localMavenPath = "${System.getProperty("user.home")}\\.m2\\repository"
         val localMavenRepository = File(localMavenPath)
@@ -142,11 +129,17 @@ open class FakeClassesExtension(protected val project: Project) {
                 this.generateDependency()
             }
         }
+        println("writing metainfo...")
+        val metainfoService = SingletonNavigatorService.metainfoService!!
+        metainfoService.fakeClassesDependencyAdded = true
+        metainfoService.fakeClassesMetainfoClassName = "${this.artifactConstants!!.generatedMetaClassPackage}.${this.artifactConstants!!.generatedMetaClassName}"
+        metainfoService.fakeClassesArtifactName = getTargetArtifactName()
+        println("metainfo writing - done")
     }
 
-    protected fun generateDependency(){
-        if(this.artifactConstants == null) throw RuntimeException("Cant find artifactConstants")
-        if(this.connectorParams == null) throw RuntimeException("Cant find connectorParams")
+    protected fun generateDependency() {
+        if (this.artifactConstants == null) throw RuntimeException("Cant find artifactConstants")
+        if (this.connectorParams == null) throw RuntimeException("Cant find connectorParams")
         println("generating...")
         val db = DbAccess.createDefaultByInstallationId(this.connectorParams!!.userId)
         try {
@@ -154,20 +147,11 @@ open class FakeClassesExtension(protected val project: Project) {
             JarGeneratorService(this.artifactConstants!!, db).generate(this.connectorParams!!.userId)
             project.dependencies.add("implementation", this.getTargetArtifactName())
             println("dependency added")
-        } catch (e : Exception) {
+        } catch (e: Exception) {
             throw e
         } finally {
             db.connection.close()
         }
         println("generation - done")
-        println("writing metainfo...")
-        this.fakeClassesDependencyAdded = true
-        this.fakeClassesMetainfoClassName = "${this.artifactConstants!!.generatedMetaClassPackage}.${this.artifactConstants!!.generatedMetaClassName}"
-        val config = project.configurations.findByName("runtimeClasspath")
-        val classLoader = URLClassLoader(config!!.files.map { it.toURI().toURL() }.toTypedArray())
-        val cl = Class.forName(fakeClassesMetainfoClassName, false, classLoader)
-        val declaredMethod = cl.getDeclaredMethod(fakeClassesMetainfoClassMethodName)
-        this.generatedClassNames = declaredMethod.invoke(cl) as List<String>
-        println("metainfo writing - done")
     }
 }
