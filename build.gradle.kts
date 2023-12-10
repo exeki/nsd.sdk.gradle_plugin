@@ -15,6 +15,23 @@ repositories {
     mavenLocal()
 }
 
+open class TestTask : DefaultTask(){
+    @TaskAction
+    fun doLat(){
+
+    }
+}
+
+tasks.register<TestTask>("testarg") {
+    doLast {
+        println(project.hasProperty("arg"))
+//        if (project.hasProperty("args")) {
+//            println("Our input argument with project property [" + project.properties + "]")
+//        }
+//        println("Our input argument with system property  [" + project.properties + "]")
+    }
+}
+
 gradlePlugin {
     plugins {
         create("nsd-sdk") {
@@ -36,6 +53,10 @@ tasks {
 
     dokkaJavadoc {
         outputDirectory.set(buildDir.resolve("docs\\javadoc"))
+    }
+
+    compileJava {
+        targetCompatibility = "11"
     }
 
     register<Jar>("javadocJar") {
@@ -65,6 +86,5 @@ publishing {
 
 dependencies {
     api("ru.kazantsev.nsd.sdk:artifact_generator:1.0.0")
-    api("ru.kazantsev.nsd.sdk:client:1.0.0")
 }
 

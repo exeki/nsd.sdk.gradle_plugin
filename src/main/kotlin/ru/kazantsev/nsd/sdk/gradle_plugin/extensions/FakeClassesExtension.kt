@@ -1,12 +1,17 @@
 package ru.kazantsev.nsd.sdk.gradle_plugin.extensions
 
+import org.gradle.api.DefaultTask
 import org.gradle.api.Project
+import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.TaskProvider
 import ru.kazantsev.nsd.basic_api_connector.ConnectorParams
 import ru.kazantsev.nsd.sdk.artifact_generator.ArtifactConstants
 import ru.kazantsev.nsd.sdk.artifact_generator.JarGeneratorService
-import ru.kazantsev.nsd.sdk.client.MetainfoUpdateService
-import ru.kazantsev.nsd.sdk.data.DbAccess
+import ru.kazantsev.nsd.sdk.artifact_generator.client.MetainfoUpdateService
+import ru.kazantsev.nsd.sdk.artifact_generator.data.DbAccess
 import ru.kazantsev.nsd.sdk.gradle_plugin.services.SingletonNavigatorService
+import ru.kazantsev.nsd.sdk.gradle_plugin.tasks.RegenerateFakeClassesTask
+import ru.kazantsev.nsd.sdk.gradle_plugin.tasks.UrlVerify
 import java.io.File
 
 /**
@@ -95,6 +100,7 @@ open class FakeClassesExtension(protected val project: Project) {
         generateAndAddDependency()
     }
 
+
     /**
      * Сгенерировать артефакт.
      * Предварительно должны быть заданы поля connectorParams и artifactConstants,
@@ -103,7 +109,6 @@ open class FakeClassesExtension(protected val project: Project) {
     protected fun generateAndAddDependency() {
         if (this.artifactConstants == null) throw RuntimeException("Cant find artifactConstants")
         if (this.connectorParams == null) throw RuntimeException("Cant find connectorParams")
-
         var localMavenPath = "${System.getProperty("user.home")}\\.m2\\repository"
         val localMavenRepository = File(localMavenPath)
         if (!localMavenRepository.exists()) throw RuntimeException("Local maven repo not exists")
@@ -132,12 +137,13 @@ open class FakeClassesExtension(protected val project: Project) {
         println("writing metainfo...")
         val metainfoService = SingletonNavigatorService.metainfoService!!
         metainfoService.fakeClassesDependencyAdded = true
-        metainfoService.fakeClassesMetainfoClassName = "${this.artifactConstants!!.generatedMetaClassPackage}.${this.artifactConstants!!.generatedMetaClassName}"
+        metainfoService.fakeClassesMetainfoClassName =
+            "${this.artifactConstants!!.generatedMetaClassPackage}.${this.artifactConstants!!.generatedMetaClassName}"
         metainfoService.fakeClassesArtifactName = getTargetArtifactName()
         println("metainfo writing - done")
     }
 
-    protected fun generateDependency() {
+    fun generateDependency() {
         if (this.artifactConstants == null) throw RuntimeException("Cant find artifactConstants")
         if (this.connectorParams == null) throw RuntimeException("Cant find connectorParams")
         println("generating...")
