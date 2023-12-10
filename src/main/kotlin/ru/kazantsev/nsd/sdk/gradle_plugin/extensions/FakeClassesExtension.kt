@@ -1,17 +1,13 @@
 package ru.kazantsev.nsd.sdk.gradle_plugin.extensions
 
-import org.gradle.api.DefaultTask
 import org.gradle.api.Project
-import org.gradle.api.tasks.TaskAction
-import org.gradle.api.tasks.TaskProvider
+import org.gradle.api.logging.LogLevel
 import ru.kazantsev.nsd.basic_api_connector.ConnectorParams
 import ru.kazantsev.nsd.sdk.artifact_generator.ArtifactConstants
 import ru.kazantsev.nsd.sdk.artifact_generator.JarGeneratorService
 import ru.kazantsev.nsd.sdk.artifact_generator.client.MetainfoUpdateService
 import ru.kazantsev.nsd.sdk.artifact_generator.data.DbAccess
 import ru.kazantsev.nsd.sdk.gradle_plugin.services.SingletonNavigatorService
-import ru.kazantsev.nsd.sdk.gradle_plugin.tasks.RegenerateFakeClassesTask
-import ru.kazantsev.nsd.sdk.gradle_plugin.tasks.UrlVerify
 import java.io.File
 
 /**
@@ -21,6 +17,8 @@ open class FakeClassesExtension(protected val project: Project) {
 
     private var connectorParams: ConnectorParams? = null
 
+    var targetMeta : Set<String>? = null
+
     /**
      * Перечень сгенерированных классов
      */
@@ -29,7 +27,7 @@ open class FakeClassesExtension(protected val project: Project) {
 
     private var artifactConstants: ArtifactConstants? = null
 
-    var installationId: String? = null
+    protected var installationId: String? = null
         private set
 
 
@@ -127,11 +125,18 @@ open class FakeClassesExtension(protected val project: Project) {
         println("exists: $exists")
         if (!exists) generateDependency()
         project.dependencies.add("implementation", this.getTargetArtifactName())
-        project.task("regenerate_fake_classes") {
+        project.task("regenerate_all_fake_classes") {
             it.group = "nsd_sdk"
             it.description = "Regenerate fake classes dependency by fetching full metainfo from NSD installation"
             it.doLast {
                 this.generateDependency()
+            }
+        }
+        project.task("regenerate_target_fake_classes") {
+            it.group = "nsd_sdk"
+            it.description = "Regenerate some fake classes in dependency by target fetching metainfo from NSD installation"
+            it.doLast {
+                this.generateTargetClasses()
             }
         }
         println("writing metainfo...")
@@ -143,7 +148,28 @@ open class FakeClassesExtension(protected val project: Project) {
         println("metainfo writing - done")
     }
 
-    fun generateDependency() {
+    protected fun generateTargetClasses(){
+        if (this.artifactConstants == null) throw RuntimeException("Cant find artifactConstants")
+        if (this.connectorParams == null) throw RuntimeException("Cant find connectorParams")
+        if (this.targetMeta == null) throw RuntimeException("Please specify the target metaclass codes")
+        if (this.targetMeta!!.isEmpty()) throw RuntimeException("Please specify the target metaclass codes")
+
+        println("generating...")
+        val db = DbAccess.createDefaultByInstallationId(this.connectorParams!!.userId)
+        try {
+            MetainfoUpdateService(this.connectorParams!!, db).fetchMeta(this.targetMeta!!)
+            JarGeneratorService(this.artifactConstants!!, db).generate(this.connectorParams!!.userId)
+            project.dependencies.add("implementation", this.getTargetArtifactName())
+            println("dependency added")
+        } catch (e: Exception) {
+            throw e
+        } finally {
+            db.connection.close()
+        }
+        println("generation - done")
+    }
+
+    protected fun generateDependency() {
         if (this.artifactConstants == null) throw RuntimeException("Cant find artifactConstants")
         if (this.connectorParams == null) throw RuntimeException("Cant find connectorParams")
         println("generating...")
