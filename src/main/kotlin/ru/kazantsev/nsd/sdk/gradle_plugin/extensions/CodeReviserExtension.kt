@@ -23,13 +23,19 @@ open class CodeReviserExtension(private val project: Project) {
             it.description = "Creates files from all sources in the " +
                     "specified directory with code ready to be placed in NSD"
             it.doLast {
-                this.process()
+                this.process(processDir)
             }
         }
     }
 
-    private fun process() {
-        processFile(processDir)
+    private fun process(file: File) {
+        if (this.outDir.isFile) throw RuntimeException("CodeReviserExtension.processDir: Out directory cant by a file")
+        if (file.isFile) processFile(file)
+        else {
+            file.listFiles()?.forEach {
+                process(it)
+            }
+        }
     }
 
     //TODO на будущее
@@ -43,31 +49,26 @@ open class CodeReviserExtension(private val project: Project) {
         }
     }
 
-    private fun processFile(file: File) {
-        if (this.outDir.isFile) throw RuntimeException("Out directory cant by a file")
-        if (file.isFile) {
-            var filePath = file.name
-            var lookFolder = file.parentFile
-            while (true) {
-                filePath = "${lookFolder.name}\\$filePath"
-                if (lookFolder == processDir) break
-                else lookFolder = lookFolder.parentFile
-            }
-            val targetFile = File("${this.outDir.path}\\$filePath")
-            targetFile.parentFile.mkdirs()
-            var text = file.readText()
-            val generatedClassNames = SingletonNavigatorService.metainfoService!!.getGeneratedClassNames()
-            if (generatedClassNames.isEmpty()) {
-                throw RuntimeException("Cant find generatedClassNames in fakeClassesExtension")
-            }
-            generatedClassNames.forEach {
-                text = text.replace(it, fakeClassesRealName)
-            }
-            targetFile.writeText(text)
-        } else {
-            file.listFiles()?.forEach {
-                processFile(it)
-            }
+    fun processFile(file: File): File {
+        if (!file.isFile) throw RuntimeException("CodeReviserExtension.processFile: File to process cant by a directory. File: ${file.path}")
+        var filePath = file.name
+        var lookFolder = file.parentFile
+        while (true) {
+            filePath = "${lookFolder.name}\\$filePath"
+            if (lookFolder == processDir) break
+            else lookFolder = lookFolder.parentFile
         }
+        val targetFile = File("${this.outDir.path}\\$filePath")
+        targetFile.parentFile.mkdirs()
+        var text = file.readText()
+        val generatedClassNames = SingletonNavigatorService.metainfoService!!.getGeneratedClassNames()
+        if (generatedClassNames.isEmpty()) {
+            throw RuntimeException("Cant find generatedClassNames in fakeClassesExtension")
+        }
+        generatedClassNames.forEach {
+            text = text.replace(it, fakeClassesRealName)
+        }
+        targetFile.writeText(text)
+        return targetFile
     }
 }

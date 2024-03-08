@@ -2,6 +2,7 @@ package ru.kazantsev.nsd.sdk.gradle_plugin.services
 
 import org.gradle.api.Project
 import ru.kazantsev.nsd.sdk.gradle_plugin.extensions.CodeReviserExtension
+import ru.kazantsev.nsd.sdk.gradle_plugin.extensions.CodeRunnerExtension
 import ru.kazantsev.nsd.sdk.gradle_plugin.extensions.FakeClassesExtension
 
 class SingletonNavigatorService {
@@ -9,6 +10,7 @@ class SingletonNavigatorService {
         var metainfoService: MetainfoService? = null
         var codeReviserExtension: CodeReviserExtension? = null
         var fakeClassesExtension: FakeClassesExtension? = null
+        var codeRunnerExtension: CodeRunnerExtension? = null
         fun init(project: Project) {
             fakeClassesExtension = project.extensions.create(
                 "fakeClasses",
@@ -21,6 +23,7 @@ class SingletonNavigatorService {
                 project
             )
             metainfoService = MetainfoService(project)
+            codeRunnerExtension = CodeRunnerExtension(project)
         }
     }
 }

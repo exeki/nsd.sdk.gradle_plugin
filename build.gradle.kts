@@ -86,5 +86,6 @@ publishing {
 
 dependencies {
     api("ru.kazantsev.nsd.sdk:artifact_generator:1.0.0")
+    api("ru.kazantsev.nsd:basic_api_connector:1.0.0")
 }
 

@@ -15,7 +15,7 @@ import java.io.File
  */
 open class FakeClassesExtension(protected val project: Project) {
 
-    private var connectorParams: ConnectorParams? = null
+    var connectorParams: ConnectorParams? = null
 
     var targetMeta : Set<String>? = null
 
