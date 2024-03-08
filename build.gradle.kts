@@ -15,23 +15,6 @@ repositories {
     mavenLocal()
 }
 
-open class TestTask : DefaultTask(){
-    @TaskAction
-    fun doLat(){
-
-    }
-}
-
-tasks.register<TestTask>("testarg") {
-    doLast {
-        println(project.hasProperty("arg"))
-//        if (project.hasProperty("args")) {
-//            println("Our input argument with project property [" + project.properties + "]")
-//        }
-//        println("Our input argument with system property  [" + project.properties + "]")
-    }
-}
-
 gradlePlugin {
     plugins {
         create("nsd-sdk") {
@@ -86,6 +69,5 @@ publishing {
 
 dependencies {
     api("ru.kazantsev.nsd.sdk:artifact_generator:1.0.0")
-    api("ru.kazantsev.nsd:basic_api_connector:1.0.0")
 }
 
