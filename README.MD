@@ -7,7 +7,7 @@
 
 1. Разместите в вашем репозитории собранные пакеты с текущим плагином, а так же его зависимостями (можно в локальном)
 2. Разместите в нужной вам инсталляции NSD [этот модуль](https://github.com/exeki/nsd.modules.sdk_controller)
-3. В вашем проекте подключите в файл settings.gradle.kts репозиторий с текущим плагином (в данном случае указан локальный):
+3. В вашем проекте подключите в файл settings.gradle.kts репозиторий с текущим плагином (в примере указан локальный репозиторий):
 ```kotlin
 rootProject.name = "random_scripts"
 pluginManagement {
@@ -54,7 +54,6 @@ plugins {
 ```kotlin
 fakeClasses {
     generate("MY_SD")
-    targetMeta = setOf("orderCall")
 }
 ```
 3. Выполните пересборку gradle проекта
@@ -122,7 +121,7 @@ logger.info(object.UUID)
 ```kotlin
 fakeClasses {
     generate("MY_SD")
-    targetMeta = setOf("orderCall")
+    targetMeta = setOf("orderCall", "serviceCall")
 }
 ```
 После этого вызовите задачу regenerate_target_fake_classes, она затянет информацию только по указанному классу, что будет намного быстрее чем полное обновление.
