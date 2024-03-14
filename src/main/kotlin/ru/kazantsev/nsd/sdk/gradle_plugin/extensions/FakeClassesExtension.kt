@@ -3,10 +3,10 @@ package ru.kazantsev.nsd.sdk.gradle_plugin.extensions
 import org.gradle.api.Project
 import org.gradle.api.logging.LogLevel
 import ru.kazantsev.nsd.basic_api_connector.ConnectorParams
-import ru.kazantsev.nsd.sdk.artifact_generator.ArtifactConstants
-import ru.kazantsev.nsd.sdk.artifact_generator.JarGeneratorService
-import ru.kazantsev.nsd.sdk.artifact_generator.client.MetainfoUpdateService
-import ru.kazantsev.nsd.sdk.artifact_generator.data.DbAccess
+import ru.kazantsev.nsd.sdk.gradle_plugin.artifact_generator.ArtifactConstants
+import ru.kazantsev.nsd.sdk.gradle_plugin.artifact_generator.JarGeneratorService
+import ru.kazantsev.nsd.sdk.gradle_plugin.artifact_generator.client.MetainfoUpdateService
+import ru.kazantsev.nsd.sdk.gradle_plugin.artifact_generator.data.DbAccess
 import ru.kazantsev.nsd.sdk.gradle_plugin.services.SingletonNavigatorService
 import java.io.File
 
@@ -61,11 +61,9 @@ open class FakeClassesExtension(protected val project: Project) {
     fun generate(installationId: String) {
         this.installationId = installationId
         this.artifactConstants = ArtifactConstants(installationId)
-        this.connectorParams = if (connectorParamsPath == null) {
-            ConnectorParams.byConfigFile(installationId)
-        } else {
-            ConnectorParams.byConfigFileInPath(installationId, connectorParamsPath)
-        }
+        this.connectorParams = if (connectorParamsPath == null) ConnectorParams.byConfigFile(installationId)
+        else ConnectorParams.byConfigFileInPath(installationId, connectorParamsPath)
+
         generateAndAddDependency()
     }
 
@@ -110,6 +108,7 @@ open class FakeClassesExtension(protected val project: Project) {
         var localMavenPath = "${System.getProperty("user.home")}\\.m2\\repository"
         val localMavenRepository = File(localMavenPath)
         if (!localMavenRepository.exists()) throw RuntimeException("Local maven repo not exists")
+
         localMavenPath = localMavenPath
             .plus("\\")
             .plus(artifactConstants!!.targetArtifactGroup.split('.').joinToString("\\"))

@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "ru.kazantsev.nsd.sdk.gradle_plugin"
-version = "1.0.0"
+version = "1.1.0"
 
 repositories {
     mavenCentral()
@@ -57,7 +57,6 @@ tasks {
         archiveClassifier.set("sources")
     }
 }
-
 publishing {
     publications {
         create<MavenPublication>("pluginPublication") {
@@ -80,6 +79,19 @@ publishing {
 }
 
 dependencies {
-    api("ru.kazantsev.nsd.sdk:artifact_generator:1.0.0")
+    implementation("ru.kazantsev.nsd:basic_api_connector:1.0.1")
+    implementation("ru.kazantsev.nsd.sdk:upper_level_classes:1.0.0")
+    //implementation(files("src/main/resources/ru/kazantsev/nsd/sdk/artifact_generator/project_files/libs/global_variables-1.0.0.jar"))
+    //implementation(files("src/main/resources/ru/kazantsev/nsd/sdk/artifact_generator/project_files/libs/upper_level_classes-1.0.0.jar"))
+    implementation("org.slf4j:slf4j-api:2.0.9")
+    implementation("ch.qos.logback:logback-classic:1.4.11")
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.15.2")
+    implementation("com.j256.ormlite:ormlite-jdbc:6.1")
+    implementation("com.h2database:h2:2.1.214")
+    implementation("com.squareup:javapoet:1.13.0")
+    implementation("org.jsoup:jsoup:1.16.1")
+
+    //testImplementation("org.codehaus.groovy:groovy-all:3.0.17")
+    testImplementation(kotlin("test"))
 }
 
