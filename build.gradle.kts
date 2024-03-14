@@ -6,9 +6,8 @@ plugins {
     id("groovy")
 }
 
-group = "ru.kazantsev.nsd.sdk.gradle_plugin"
+group = "ru.kazantsev.nsd.sdk"
 version = "1.1.0"
-
 
 repositories {
     mavenCentral()
@@ -23,9 +22,9 @@ repositories {
 
 gradlePlugin {
     plugins {
-        create("nsd-sdk") {
-            id = "ru.kazantsev.nsd.sdk.gradle_plugin"
-            version = "1.0.0"
+        create("nsd_sdk") {
+            id = "nsd_sdk"
+            version = project.version
             implementationClass = "ru.kazantsev.nsd.sdk.gradle_plugin.Plugin"
         }
     }
