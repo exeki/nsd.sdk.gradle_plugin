@@ -17,7 +17,8 @@ repositories {
             username = System.getenv("GITHUB_USERNAME")
             password = System.getenv("GITHUB_TOKEN")
         }
-    }}
+    }
+}
 
 gradlePlugin {
     plugins {
@@ -69,7 +70,7 @@ publishing {
     repositories {
         maven {
             name = "GitHubPackages"
-            url = uri("https://maven.pkg.github.com/exeki/nsd.sdk.global_variables")
+            url = uri("https://maven.pkg.github.com/exeki/nsd.sdk.gradle_plugin")
             credentials {
                 username = System.getenv("GITHUB_USERNAME")
                 password = System.getenv("GITHUB_TOKEN")
