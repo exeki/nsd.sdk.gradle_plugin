@@ -78,6 +78,7 @@ publishing {
     }
 }
 
+
 dependencies {
     implementation("ru.kazantsev.nsd:basic_api_connector:1.0.1")
     implementation("ru.kazantsev.nsd.sdk:upper_level_classes:1.0.0")
