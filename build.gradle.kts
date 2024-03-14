@@ -9,6 +9,7 @@ plugins {
 group = "ru.kazantsev.nsd.sdk.gradle_plugin"
 version = "1.1.0"
 
+
 repositories {
     mavenCentral()
     maven {
