@@ -4,7 +4,6 @@ plugins {
     id("java-gradle-plugin")
     id("org.jetbrains.dokka") version "1.9.10"
     id("groovy")
-    //`kotlin-dsl`
 }
 
 group = "ru.kazantsev.nsd.sdk.gradle_plugin"
@@ -12,8 +11,13 @@ version = "1.0.0"
 
 repositories {
     mavenCentral()
-    mavenLocal()
-}
+    maven {
+        url = uri("https://maven.pkg.github.com/exeki/*")
+        credentials {
+            username = System.getenv("GITHUB_USERNAME")
+            password = System.getenv("GITHUB_TOKEN")
+        }
+    }}
 
 gradlePlugin {
     plugins {
@@ -63,7 +67,14 @@ publishing {
         }
     }
     repositories {
-        mavenLocal()
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/exeki/nsd.sdk.global_variables")
+            credentials {
+                username = System.getenv("GITHUB_USERNAME")
+                password = System.getenv("GITHUB_TOKEN")
+            }
+        }
     }
 }
 
