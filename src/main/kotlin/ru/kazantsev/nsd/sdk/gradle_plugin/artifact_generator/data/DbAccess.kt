@@ -18,7 +18,7 @@ class DbAccess(dbFilePath: String) {
          */
         @JvmStatic
         fun createDefaultByInstallationId(installationId: String): DbAccess {
-            return DbAccess("C:\\Users\\ekazantsev\\nsd_sdk\\data\\${installationId.lowercase()}\\sdk_meta_store.mv.db")
+            return DbAccess("${System.getProperty("user.home")}\\nsd_sdk\\data\\${installationId.lowercase()}\\sdk_meta_store.mv.db")
         }
     }
 
