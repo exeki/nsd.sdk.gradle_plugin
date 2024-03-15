@@ -1,7 +1,6 @@
 package ru.kazantsev.nsd.sdk.gradle_plugin.extensions
 
 import org.gradle.api.Project
-import org.gradle.api.logging.LogLevel
 import ru.kazantsev.nsd.basic_api_connector.ConnectorParams
 import ru.kazantsev.nsd.sdk.gradle_plugin.artifact_generator.ArtifactConstants
 import ru.kazantsev.nsd.sdk.gradle_plugin.artifact_generator.JarGeneratorService
@@ -41,7 +40,7 @@ open class FakeClassesExtension(protected val project: Project) {
      * @return идентификатор артефакта,
      * по которому можно подключить сгенерированный артефакт
      */
-    private fun getTargetArtifactName(): String {
+    private fun getTargetArtifactId(): String {
         if (this.artifactConstants == null) throw RuntimeException("Cant find artifactConstants")
         val group = artifactConstants!!.targetArtifactGroup
         val name = artifactConstants!!.targetArtifactName
@@ -117,34 +116,43 @@ open class FakeClassesExtension(protected val project: Project) {
             .plus("\\")
             .plus(artifactConstants!!.targetArtifactVersion)
 
-        val exists: Boolean = File(localMavenPath).exists()
-        println("FAKE CLASSES")
-        println("dependency ${this.getTargetArtifactName()}")
-        println("in path: $localMavenPath")
-        println("exists: $exists")
-        if (!exists) generateDependency()
-        project.dependencies.add("implementation", this.getTargetArtifactName())
-        project.task("regenerate_all_fake_classes") {
-            it.group = "nsd_sdk"
-            it.description = "Regenerate fake classes dependency by fetching full metainfo from NSD installation"
-            it.doLast {
-                this.generateDependency()
+        val jarExists: Boolean = File(localMavenPath).exists()
+        println("")
+        println("NSD SDK FAKE CLASSES")
+        val targetJarName = "${this.artifactConstants!!.targetArtifactName}-${this.artifactConstants!!.targetArtifactVersion}.jar"
+        if (!jarExists) {
+            println("Fake classes jar \"$targetJarName\" not exists in path \"$localMavenPath\"")
+            generateDependency()
+            println("Fake classes jar file generation is complete. Connect it to project by adding this id to the dependencies:")
+            println(this.getTargetArtifactId())
+        } else {
+            val dep = project.configurations.getByName("compileClasspath").find { it.name == targetJarName}
+            if(dep == null) {
+                println("Fake classes jar file already exists. Connect it to project by adding this id to the dependencies:")
+                println(this.getTargetArtifactId())
+            } else {
+                println("Fake classes added")
+                project.task("regenerate_all_fake_classes") {
+                    it.group = "nsd_sdk"
+                    it.description = "Regenerate fake classes dependency by fetching full metainfo from NSD installation"
+                    it.doLast {
+                        this.generateDependency()
+                    }
+                }
+                project.task("regenerate_target_fake_classes") {
+                    it.group = "nsd_sdk"
+                    it.description = "Regenerate some fake classes in dependency by target fetching metainfo from NSD installation"
+                    it.doLast {
+                        this.generateTargetClasses()
+                    }
+                }
+                val metainfoService = SingletonNavigatorService.metainfoService!!
+                metainfoService.fakeClassesDependencyAdded = true
+                metainfoService.fakeClassesMetainfoClassName =
+                    "${this.artifactConstants!!.generatedMetaClassPackage}.${this.artifactConstants!!.generatedMetaClassName}"
+                metainfoService.fakeClassesArtifactName = getTargetArtifactId()
             }
         }
-        project.task("regenerate_target_fake_classes") {
-            it.group = "nsd_sdk"
-            it.description = "Regenerate some fake classes in dependency by target fetching metainfo from NSD installation"
-            it.doLast {
-                this.generateTargetClasses()
-            }
-        }
-        println("writing metainfo...")
-        val metainfoService = SingletonNavigatorService.metainfoService!!
-        metainfoService.fakeClassesDependencyAdded = true
-        metainfoService.fakeClassesMetainfoClassName =
-            "${this.artifactConstants!!.generatedMetaClassPackage}.${this.artifactConstants!!.generatedMetaClassName}"
-        metainfoService.fakeClassesArtifactName = getTargetArtifactName()
-        println("metainfo writing - done")
     }
 
     protected fun generateTargetClasses(){
@@ -158,7 +166,7 @@ open class FakeClassesExtension(protected val project: Project) {
         try {
             MetainfoUpdateService(this.connectorParams!!, db).fetchMeta(this.targetMeta!!)
             JarGeneratorService(this.artifactConstants!!, db).generate(this.connectorParams!!.userId)
-            project.dependencies.add("implementation", this.getTargetArtifactName())
+            project.dependencies.add("implementation", this.getTargetArtifactId())
             println("dependency added")
         } catch (e: Exception) {
             throw e
@@ -176,7 +184,7 @@ open class FakeClassesExtension(protected val project: Project) {
         try {
             MetainfoUpdateService(this.connectorParams!!, db).fetchMeta()
             JarGeneratorService(this.artifactConstants!!, db).generate(this.connectorParams!!.userId)
-            project.dependencies.add("implementation", this.getTargetArtifactName())
+            project.dependencies.add("implementation", this.getTargetArtifactId())
             println("dependency added")
         } catch (e: Exception) {
             throw e
