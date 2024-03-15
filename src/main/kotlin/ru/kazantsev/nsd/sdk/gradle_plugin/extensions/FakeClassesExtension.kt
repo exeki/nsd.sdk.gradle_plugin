@@ -123,12 +123,12 @@ open class FakeClassesExtension(protected val project: Project) {
         if (!jarExists) {
             println("Fake classes jar \"$targetJarName\" not exists in path \"$localMavenPath\"")
             generateDependency()
-            println("Fake classes jar file generation is complete. Connect it to project by adding this id to the dependencies:")
+            println("Fake classes jar file generation is complete in maven local repository. Connect it to project by adding this id to the dependencies:")
             println(this.getTargetArtifactId())
         } else {
             val dep = project.configurations.getByName("compileClasspath").find { it.name == targetJarName}
             if(dep == null) {
-                println("Fake classes jar file already exists. Connect it to project by adding this id to the dependencies:")
+                println("Fake classes jar file already exists in maven local repository. Connect it to project by adding this id to the dependencies:")
                 println(this.getTargetArtifactId())
             } else {
                 println("Fake classes added")
