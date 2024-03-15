@@ -122,7 +122,7 @@ open class FakeClassesExtension(protected val project: Project) {
         val targetJarName = "${this.artifactConstants!!.targetArtifactName}-${this.artifactConstants!!.targetArtifactVersion}.jar"
         if (!jarExists) {
             println("Fake classes jar \"$targetJarName\" not exists in path \"$localMavenPath\"")
-            generateDependency()
+            this.generateDependency()
             println("Fake classes jar file generation is complete in maven local repository. Connect it to project by adding this id to the dependencies:")
             println(this.getTargetArtifactId())
         } else {
@@ -161,36 +161,37 @@ open class FakeClassesExtension(protected val project: Project) {
         if (this.targetMeta == null) throw RuntimeException("Please specify the target metaclass codes")
         if (this.targetMeta!!.isEmpty()) throw RuntimeException("Please specify the target metaclass codes")
 
-        println("generating...")
         val db = DbAccess.createDefaultByInstallationId(this.connectorParams!!.userId)
         try {
+            println("Fetching metainfo...")
             MetainfoUpdateService(this.connectorParams!!, db).fetchMeta(this.targetMeta!!)
+            println("Fetching metainfo - done")
+
+            println("Jar generation...")
             JarGeneratorService(this.artifactConstants!!, db).generate(this.connectorParams!!.userId)
-            project.dependencies.add("implementation", this.getTargetArtifactId())
-            println("dependency added")
+            println("Jar generation - done")
         } catch (e: Exception) {
             throw e
         } finally {
             db.connection.close()
         }
-        println("generation - done")
     }
 
     protected fun generateDependency() {
         if (this.artifactConstants == null) throw RuntimeException("Cant find artifactConstants")
         if (this.connectorParams == null) throw RuntimeException("Cant find connectorParams")
-        println("generating...")
         val db = DbAccess.createDefaultByInstallationId(this.connectorParams!!.userId)
         try {
+            println("Fetching metainfo...")
             MetainfoUpdateService(this.connectorParams!!, db).fetchMeta()
+            println("Fetching metainfo - done")
+            println("Jar generation...")
             JarGeneratorService(this.artifactConstants!!, db).generate(this.connectorParams!!.userId)
-            project.dependencies.add("implementation", this.getTargetArtifactId())
-            println("dependency added")
+            println("Jar generation - done")
         } catch (e: Exception) {
             throw e
         } finally {
             db.connection.close()
         }
-        println("generation - done")
     }
 }
