@@ -87,7 +87,7 @@ class JarGeneratorService(private val artifactConstants: ArtifactConstants, priv
         logger.info("Start jar generation")
         projectGenerator.generateProject(installation)
         logger.info("Starting building artifact...")
-        runGradleBuild("publish")
+        runGradleBuild("publishToMavenLocal")
         logger.info("Artifact build - done")
 //        logger.info("Copying jar files to target folder...")
 //        val newJarFolder = File(artifactConstants.newJarFolder)

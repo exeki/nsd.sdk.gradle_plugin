@@ -29,6 +29,9 @@ import javax.lang.model.element.Modifier
  */
 class FieldGeneratorService(private var artifactConstants: ArtifactConstants, private val db: DbAccess) {
 
+    companion object {
+        val FORBIDDEN_FIELD_NAMES = setOf<String>("private", "protected", "interface", "class")
+    }
     private val logger: Logger = LoggerFactory.getLogger(FieldGeneratorService::class.java)
 
     /**
@@ -101,7 +104,10 @@ class FieldGeneratorService(private var artifactConstants: ArtifactConstants, pr
     private fun getGenericFieldProto(type: Class<*>, attr: Attribute): FieldSpec.Builder {
         val className: ClassName =
             if (db.metaClassDao.queryForEq("fullCode", attr.relatedMetaClass!!).firstOrNull() != null) {
-                ClassName.get(artifactConstants.packageName, artifactConstants.getClassNameFromMetacode(attr.relatedMetaClass!!))
+                ClassName.get(
+                    artifactConstants.packageName,
+                    artifactConstants.getClassNameFromMetacode(attr.relatedMetaClass!!)
+                )
             } else {
                 ClassName.get(Object::class.java)
             }
@@ -114,14 +120,34 @@ class FieldGeneratorService(private var artifactConstants: ArtifactConstants, pr
     }
 
     /**
+     * Заменяет все запрещенные в html символы
+     */
+    fun replaceHtmlSymbols(str: String): String {
+        return str
+            .replace("&", "&amp;")
+            .replace("<", "&lt;")
+            .replace(">", "&gt;")
+            .replace("\"", "&quot;")
+            .replace("'", "&apos;")
+    }
+
+    /**
+     * Заменяет запрещенные коды полей на их
+     */
+    fun fixAttrCode( str : String) : String {
+        return if(str in FORBIDDEN_FIELD_NAMES) str + "Field"
+        else str
+    }
+
+    /**
      * Генерирует javaDoc для поля
      * @param attr аттрибут, на основании которого генерируется поле и javaDoc
      * @return прототип CodeBlock.Builder
      */
     private fun generateFieldJavaDocProto(attr: Attribute): CodeBlock.Builder {
         val javaDocProto = CodeBlock.builder()
-            .add("<strong>Наименование: </strong>${attr.title};<br>\n")
-            .add("<strong>Код: </strong>${attr.code};<br>\n")
+            .add("<strong>Наименование: </strong>${replaceHtmlSymbols(attr.title)};<br>\n")
+            .add("<strong>Код: </strong>${fixAttrCode(attr.code)};<br>\n")
             .add("<strong>Тип: </strong>${attr.type.getTitle()};<br>\n")
         if (attr.relatedMetaClass != null) javaDocProto.add("<strong>Связанный метакласс: </strong>${attr.relatedMetaClass};<br>\n")
         javaDocProto
@@ -130,11 +156,8 @@ class FieldGeneratorService(private var artifactConstants: ArtifactConstants, pr
             .add("<strong>Уникальный: </strong>${attr.unique};<br>\n")
             .add("<strong>Системный: </strong>${attr.hardcoded};<br>\n")
         if (attr.description != null && attr.description!!.isNotEmpty()) {
-            var clearDescription: String = Jsoup.parse(attr.description!!).text().replace('$', artifactConstants.classDelimiter)
-            if (clearDescription.isNotEmpty()) {
-                clearDescription = clearDescription.replace('<', ' ').replace('>', ' ')
-                javaDocProto.add("<strong>Описание: </strong> $clearDescription;")
-            }
+            val clearDescription: String = Jsoup.parse(attr.description!!).text()
+            if (clearDescription.isNotEmpty()) javaDocProto.add("<strong>Описание: </strong> ${replaceHtmlSymbols(clearDescription)};")
         }
         return javaDocProto
     }

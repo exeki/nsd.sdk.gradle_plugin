@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "ru.kazantsev.nsd.sdk"
-version = "1.1.2.2"
+version = "1.1.3"
 
 repositories {
     mavenCentral()
@@ -58,14 +58,6 @@ tasks {
     }
 }
 publishing {
-    publications {
-        create<MavenPublication>("pluginPublication") {
-            from(components["kotlin"])
-            //artifact(tasks.named("jar"))
-            artifact(tasks.named("javadocJar"))
-            artifact(tasks.named("sourcesJar"))
-        }
-    }
     repositories {
         maven {
             name = "GitHubPackages"
