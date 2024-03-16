@@ -34,7 +34,6 @@ class JarGeneratorService(private val artifactConstants: ArtifactConstants, priv
         val process = processBuilder.start()
         val inputStream = process.inputStream
         val errorStream = process.errorStream
-
         val inputReader = inputStream.reader()
         val errorReader = errorStream.reader()
 

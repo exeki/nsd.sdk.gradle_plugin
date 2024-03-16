@@ -30,7 +30,7 @@ import javax.lang.model.element.Modifier
 class FieldGeneratorService(private var artifactConstants: ArtifactConstants, private val db: DbAccess) {
 
     companion object {
-        val FORBIDDEN_FIELD_NAMES = setOf<String>("private", "protected", "interface", "class")
+        val FORBIDDEN_FIELD_NAMES = setOf("private", "protected", "interface", "class", "int", "if", "boll")
     }
     private val logger: Logger = LoggerFactory.getLogger(FieldGeneratorService::class.java)
 
@@ -132,14 +132,6 @@ class FieldGeneratorService(private var artifactConstants: ArtifactConstants, pr
     }
 
     /**
-     * Заменяет запрещенные коды полей на их
-     */
-    fun fixAttrCode( str : String) : String {
-        return if(str in FORBIDDEN_FIELD_NAMES) str + "Field"
-        else str
-    }
-
-    /**
      * Генерирует javaDoc для поля
      * @param attr аттрибут, на основании которого генерируется поле и javaDoc
      * @return прототип CodeBlock.Builder
@@ -147,7 +139,7 @@ class FieldGeneratorService(private var artifactConstants: ArtifactConstants, pr
     private fun generateFieldJavaDocProto(attr: Attribute): CodeBlock.Builder {
         val javaDocProto = CodeBlock.builder()
             .add("<strong>Наименование: </strong>${replaceHtmlSymbols(attr.title)};<br>\n")
-            .add("<strong>Код: </strong>${fixAttrCode(attr.code)};<br>\n")
+            .add("<strong>Код: </strong>${attr.code};<br>\n")
             .add("<strong>Тип: </strong>${attr.type.getTitle()};<br>\n")
         if (attr.relatedMetaClass != null) javaDocProto.add("<strong>Связанный метакласс: </strong>${attr.relatedMetaClass};<br>\n")
         javaDocProto
@@ -250,9 +242,9 @@ class FieldGeneratorService(private var artifactConstants: ArtifactConstants, pr
                 logger.debug("Creating javaDoc - done")
             }
         } catch (e: Exception) {
-            logger.error("Cant generate field named ${attr.code}: ${e.message}")
+            logger.error("Cant generate field named \"${attr.code}\": ${e.javaClass.simpleName} ${e.message}")
         }
-        logger.debug("Field ${attr.code} generation done")
+        logger.debug("Field \"${attr.code}\" generation done")
         return fieldProto
     }
 }
