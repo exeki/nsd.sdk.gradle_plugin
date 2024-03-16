@@ -161,10 +161,9 @@ open class FakeClassesExtension(protected val project: Project) {
         if (this.connectorParams == null) throw RuntimeException("Cant find connectorParams")
         if (this.targetMeta == null) throw RuntimeException("Please specify the target metaclass codes")
         if (this.targetMeta!!.isEmpty()) throw RuntimeException("Please specify the target metaclass codes")
-
         val db = DbAccess.createDefaultByInstallationId(this.connectorParams!!.userId)
         try {
-            println("Fetching metainfo (it may take about 5 minutes)...")
+            println("Fetching metainfo...")
             MetainfoUpdateService(this.connectorParams!!, db).fetchMeta(this.targetMeta!!)
             println("Fetching metainfo - done")
             println("Project generation...")
@@ -185,7 +184,7 @@ open class FakeClassesExtension(protected val project: Project) {
         if (this.connectorParams == null) throw RuntimeException("Cant find connectorParams")
         val db = DbAccess.createDefaultByInstallationId(this.connectorParams!!.userId)
         try {
-            println("Fetching metainfo...")
+            println("Fetching metainfo (it may take about 5 minutes)...")
             MetainfoUpdateService(this.connectorParams!!, db).fetchMeta()
             println("Fetching metainfo - done")
             println("Project generation...")
