@@ -35,7 +35,6 @@ class JarGeneratorService(private val artifactConstants: ArtifactConstants, priv
         val inputReader = inputStream.reader()
         val errorReader = errorStream.reader()
 
-        var needToThrow = false
 
         println("GRADLE BUILD: running task $BUILD_TASK")
 
@@ -46,7 +45,6 @@ class JarGeneratorService(private val artifactConstants: ArtifactConstants, priv
         }
 
         val errorThread = Thread {
-            needToThrow = true
             errorReader.forEachLine { line ->
                 error("GRADLE BUILD: $line")
             }
@@ -59,7 +57,8 @@ class JarGeneratorService(private val artifactConstants: ArtifactConstants, priv
         inputThread.join()
         errorThread.join()
 
-        if(needToThrow) throw RuntimeException("Failed gradle build")
+        val exitValue = process.exitValue()
+        if (exitValue != 0) throw RuntimeException("Failed gradle build with exit value $exitValue")
         logger.info("Artifact build - done")
     }
 }
