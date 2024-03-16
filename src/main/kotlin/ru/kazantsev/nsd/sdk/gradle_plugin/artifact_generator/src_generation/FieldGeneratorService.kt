@@ -108,9 +108,7 @@ class FieldGeneratorService(private var artifactConstants: ArtifactConstants, pr
                     artifactConstants.packageName,
                     artifactConstants.getClassNameFromMetacode(attr.relatedMetaClass!!)
                 )
-            } else {
-                ClassName.get(Object::class.java)
-            }
+            } else ClassName.get(Object::class.java)
         return FieldSpec.builder(
             ParameterizedTypeName.get(ClassName.get(type), className),
             attr.code,
@@ -129,6 +127,7 @@ class FieldGeneratorService(private var artifactConstants: ArtifactConstants, pr
             .replace(">", "&gt;")
             .replace("\"", "&quot;")
             .replace("'", "&apos;")
+            .replace("$", "\\$")
     }
 
     /**
