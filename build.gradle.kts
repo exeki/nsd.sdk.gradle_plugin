@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "ru.kazantsev.nsd.sdk"
-version = "1.1.3"
+version = "1.1.3.1"
 
 repositories {
     mavenCentral()
@@ -70,7 +70,6 @@ publishing {
     }
 }
 
-
 dependencies {
     implementation("ru.kazantsev.nsd:basic_api_connector:1.0.1")
     implementation("ru.kazantsev.nsd.sdk:upper_level_classes:1.0.0")
@@ -84,3 +83,9 @@ dependencies {
     testImplementation(kotlin("test"))
 }
 
+logging.captureStandardOutput(LogLevel.INFO)
+
+System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "info")
+System.setProperty("org.slf4j.simpleLogger.logFile", "System.out")
+System.setProperty("org.slf4j.simpleLogger.showDateTime", "true")
+System.setProperty("org.slf4j.simpleLogger.dateTimeFormat", "yyyy-MM-dd HH:mm:ss.SSS")

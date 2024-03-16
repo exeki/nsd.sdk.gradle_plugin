@@ -38,6 +38,8 @@ class JarGeneratorService(private val artifactConstants: ArtifactConstants, priv
         val inputReader = inputStream.reader()
         val errorReader = errorStream.reader()
 
+        var needToThrow = false
+
         val inputThread = Thread {
             inputReader.forEachLine { line ->
                 logger.info("GRADLE: $line")
@@ -45,6 +47,7 @@ class JarGeneratorService(private val artifactConstants: ArtifactConstants, priv
         }
 
         val errorThread = Thread {
+            needToThrow = true
             errorReader.forEachLine { line ->
                 logger.error("GRADLE: $line")
             }
@@ -56,6 +59,7 @@ class JarGeneratorService(private val artifactConstants: ArtifactConstants, priv
         process.waitFor()
         inputThread.join()
         errorThread.join()
+        if(needToThrow) throw RuntimeException("Failed gradle build")
     }
 
     /**

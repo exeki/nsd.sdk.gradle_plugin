@@ -91,7 +91,7 @@ class MetainfoUpdateService(
                 fetchMetaClassBranch(it)
             }
         } catch (e: HttpException) {
-            logger.error("Caught error while getting info about meta $code: ${e.message}")
+            logger.warn("Caught error while getting info about meta $code: ${e.message}")
         } finally {
             fetchedMeta.add(code)
             metaClassCodes.remove(code)
