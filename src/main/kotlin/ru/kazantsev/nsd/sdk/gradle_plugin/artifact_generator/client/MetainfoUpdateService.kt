@@ -91,7 +91,8 @@ class MetainfoUpdateService(
                 fetchMetaClassBranch(it)
             }
         } catch (e: HttpException) {
-            logger.warn("Caught error while getting info about meta $code: ${e.message}")
+            if(e.serverResponseStatus == 404) logger.debug("Metaclass \"$code\" not found: ${e.message}")
+            else throw RuntimeException("Caught error while getting info about metaclass \"$code\": ${e.message}")
         } finally {
             fetchedMeta.add(code)
             metaClassCodes.remove(code)
