@@ -17,7 +17,7 @@ open class FakeClassesExtension(protected val project: Project) {
 
     var connectorParams: ConnectorParams? = null
 
-    var targetMeta : Set<String>? = null
+    var targetMeta: Set<String>? = null
 
     /**
      * Перечень сгенерированных классов
@@ -120,43 +120,36 @@ open class FakeClassesExtension(protected val project: Project) {
         val jarExists: Boolean = File(localMavenPath).exists()
         println("")
         println("NSD SDK FAKE CLASSES")
-        val targetJarName = "${this.artifactConstants!!.targetArtifactName}-${this.artifactConstants!!.targetArtifactVersion}.jar"
         if (!jarExists) {
-            println("Fake classes jar \"$targetJarName\" not exists in path \"$localMavenPath\"")
+            println("Fake classes jar not exists in path \"$localMavenPath\", starting the generation...")
             this.generateDependency()
-            println("Fake classes jar file generation is complete in maven local repository. Connect it to project by adding this id to the dependencies:")
-            println(this.getTargetArtifactId())
-        } else {
-            val dep = project.configurations.getByName("compileClasspath").find { it.name == targetJarName}
-            if(dep == null) {
-                println("Fake classes jar file already exists in maven local repository. Connect it to project by adding this id to the dependencies:")
-                println(this.getTargetArtifactId())
-            } else {
-                println("Fake classes added")
-                project.task("regenerate_all_fake_classes") {
-                    it.group = "nsd_sdk"
-                    it.description = "Regenerate fake classes dependency by fetching full metainfo from NSD installation"
-                    it.doLast {
-                        this.generateDependency()
-                    }
-                }
-                project.task("regenerate_target_fake_classes") {
-                    it.group = "nsd_sdk"
-                    it.description = "Regenerate some fake classes in dependency by target fetching metainfo from NSD installation"
-                    it.doLast {
-                        this.generateTargetClasses()
-                    }
-                }
-                val metainfoService = SingletonNavigatorService.metainfoService!!
-                metainfoService.fakeClassesDependencyAdded = true
-                metainfoService.fakeClassesMetainfoClassName =
-                    "${this.artifactConstants!!.generatedMetaClassPackage}.${this.artifactConstants!!.generatedMetaClassName}"
-                metainfoService.fakeClassesArtifactName = getTargetArtifactId()
+            println("Fake classes jar file generation in maven local repository is completed.")
+        }
+        project.dependencies.add("implementation", getTargetArtifactId())
+        println("Fake classes dependency connected")
+        project.task("regenerate_all_fake_classes") {
+            it.group = "nsd_sdk"
+            it.description = "Regenerate fake classes dependency by fetching full metainfo from NSD installation"
+            it.doLast {
+                this.generateDependency()
             }
         }
+        project.task("regenerate_target_fake_classes") {
+            it.group = "nsd_sdk"
+            it.description =
+                "Regenerate some fake classes in dependency by target fetching metainfo from NSD installation"
+            it.doLast {
+                this.generateTargetClasses()
+            }
+        }
+        val metainfoService = SingletonNavigatorService.metainfoService!!
+        metainfoService.fakeClassesDependencyAdded = true
+        metainfoService.fakeClassesMetainfoClassName =
+            "${this.artifactConstants!!.generatedMetaClassPackage}.${this.artifactConstants!!.generatedMetaClassName}"
+        metainfoService.fakeClassesArtifactName = getTargetArtifactId()
     }
 
-    protected fun generateTargetClasses(){
+    protected fun generateTargetClasses() {
         if (this.artifactConstants == null) throw RuntimeException("Cant find artifactConstants")
         if (this.connectorParams == null) throw RuntimeException("Cant find connectorParams")
         if (this.targetMeta == null) throw RuntimeException("Please specify the target metaclass codes")
