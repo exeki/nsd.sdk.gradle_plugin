@@ -127,7 +127,7 @@ class FieldGeneratorService(private var artifactConstants: ArtifactConstants, pr
             .replace(">", "&gt;")
             .replace("\"", "&quot;")
             .replace("'", "&apos;")
-            .replace("$", "\\$")
+            .replace("$", "")
     }
 
     /**

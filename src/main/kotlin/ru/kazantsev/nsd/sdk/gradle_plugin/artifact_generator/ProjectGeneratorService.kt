@@ -51,9 +51,10 @@ class ProjectGeneratorService(private var artifactConstants: ArtifactConstants, 
     /**
      * Сгенерировать проект
      * хранилище метаинформации должно быть заранее наполнено
-     * @param inst инсталляция, по которой нужно сгенерировать проект
      */
-    fun generateProject(inst: Installation) {
+    fun generate() {
+        val inst: Installation = db.installationDao.queryForEq("userId", this.artifactConstants.installationId).firstOrNull()
+            ?: throw RuntimeException("Installation $this.artifactConstants.installationId not found in datasource")
         logger.info("Project generation started...")
         val existedProject = File(artifactConstants.projectFolder)
         if (existedProject.exists()) {
@@ -65,9 +66,9 @@ class ProjectGeneratorService(private var artifactConstants: ArtifactConstants, 
         logger.info("Class generation started...")
         inst.metaClasses.forEach {
             val classProto: TypeSpec = classGenerator.generateClassProto(it).build()
-            val file = File(artifactConstants.generatedProjectSrcPath);
-            val fileContent = JavaFile.builder(artifactConstants.packageName, classProto).build();
-            fileContent.writeTo(file);
+            val file = File(artifactConstants.generatedProjectSrcPath)
+            val fileContent = JavaFile.builder(artifactConstants.packageName, classProto).build()
+            fileContent.writeTo(file)
         }
         logger.info("Class generation - done")
         logger.info("Metainfo class generation started...")

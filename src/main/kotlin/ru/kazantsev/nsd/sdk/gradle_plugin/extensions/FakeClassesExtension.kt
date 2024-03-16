@@ -4,6 +4,7 @@ import org.gradle.api.Project
 import ru.kazantsev.nsd.basic_api_connector.ConnectorParams
 import ru.kazantsev.nsd.sdk.gradle_plugin.artifact_generator.ArtifactConstants
 import ru.kazantsev.nsd.sdk.gradle_plugin.artifact_generator.JarGeneratorService
+import ru.kazantsev.nsd.sdk.gradle_plugin.artifact_generator.ProjectGeneratorService
 import ru.kazantsev.nsd.sdk.gradle_plugin.artifact_generator.client.MetainfoUpdateService
 import ru.kazantsev.nsd.sdk.gradle_plugin.artifact_generator.data.DbAccess
 import ru.kazantsev.nsd.sdk.gradle_plugin.services.SingletonNavigatorService
@@ -163,12 +164,14 @@ open class FakeClassesExtension(protected val project: Project) {
 
         val db = DbAccess.createDefaultByInstallationId(this.connectorParams!!.userId)
         try {
-            println("Fetching metainfo...")
+            println("Fetching metainfo (it may take about 5 minutes)...")
             MetainfoUpdateService(this.connectorParams!!, db).fetchMeta(this.targetMeta!!)
             println("Fetching metainfo - done")
-
+            println("Project generation...")
+            ProjectGeneratorService(this.artifactConstants!!, db).generate()
+            println("Project generation - done")
             println("Jar generation...")
-            JarGeneratorService(this.artifactConstants!!, db).generate(this.connectorParams!!.userId)
+            JarGeneratorService(this.artifactConstants!!, db).generate()
             println("Jar generation - done")
         } catch (e: Exception) {
             throw e
@@ -185,8 +188,11 @@ open class FakeClassesExtension(protected val project: Project) {
             println("Fetching metainfo...")
             MetainfoUpdateService(this.connectorParams!!, db).fetchMeta()
             println("Fetching metainfo - done")
+            println("Project generation...")
+            ProjectGeneratorService(this.artifactConstants!!, db).generate()
+            println("Project generation - done")
             println("Jar generation...")
-            JarGeneratorService(this.artifactConstants!!, db).generate(this.connectorParams!!.userId)
+            JarGeneratorService(this.artifactConstants!!, db).generate()
             println("Jar generation - done")
         } catch (e: Exception) {
             throw e

@@ -52,9 +52,10 @@ class ArtifactConstants {
 
     /**
      * @param workingDirectoryPath путь до рабочей директории, где будет сгенерирован проект
-     * @param artifactName префикс артефакта
+     * @param artifactName наименовании инсталляции
      */
     constructor(artifactName: String, workingDirectoryPath: String) {
+        this.installationId = artifactName
         this.workingDirectory = "${workingDirectoryPath}\\data\\${artifactName.lowercase()}"
         this.projectPath = workingDirectory
         this.targetArtifactName = artifactName.lowercase() + defaultArtifactPostfix
@@ -68,6 +69,11 @@ class ArtifactConstants {
      * @param artifactName префикс артефакта
      */
     constructor(artifactName: String) : this(artifactName, "${System.getProperty("user.home")}\\nsd_sdk")
+
+    /**
+     * Пользовательский ID инсталляции
+     */
+    val installationId : String
 
     /**
      * Наименование jar файла
