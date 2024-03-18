@@ -37,15 +37,15 @@ publishing {
 repositories {
     mavenCentral()
     maven {
-        url = uri("https://maven.pkg.github.com/exeki/*")
+        url = uri("${repoUri}")
         credentials {
-            username = System.getenv("GITHUB_USERNAME")
-            password = System.getenv("GITHUB_TOKEN")
+            username = "${repoUsername}"
+            password = "${repoPassword}"
         }
     }
 }
 
 dependencies {
-    api("ru.kazantsev.nsd.sdk:global_variables:1.0.0")
+    api("ru.kazantsev.nsd.sdk:upper_level_classes:1.0.0")
     implementation("org.jetbrains:annotations:16.0.1")
 }

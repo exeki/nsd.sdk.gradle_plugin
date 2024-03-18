@@ -26,11 +26,11 @@ class ProjectGeneratorService(private var artifactConstants: ArtifactConstants, 
      * @param targetFolder целевая папка
      * @param variables значения для змены
      */
-    private fun copyResourceAsTemplate(resourcePath: String, targetFolder: String, variables: Map<String, String>) {
+    private fun copyResourceAsTemplate(resourcePath: String, targetFolder: String, variables: Map<String, String?>) {
         var template = classLoader.getResource(resourcePath)?.readText()
             ?: throw RuntimeException("Cant find $resourcePath file in resources")
         variables.forEach { (key, value) ->
-            template = template.replace("\${$key}", value)
+            template = template.replace("\${$key}", value ?: "")
         }
         File("$targetFolder\\${File(resourcePath).name}").writeText(template)
     }
@@ -53,8 +53,9 @@ class ProjectGeneratorService(private var artifactConstants: ArtifactConstants, 
      * хранилище метаинформации должно быть заранее наполнено
      */
     fun generate() {
-        val inst: Installation = db.installationDao.queryForEq("userId", this.artifactConstants.installationId).firstOrNull()
-            ?: throw RuntimeException("Installation $this.artifactConstants.installationId not found in datasource")
+        val inst: Installation =
+            db.installationDao.queryForEq("userId", this.artifactConstants.installationId).firstOrNull()
+                ?: throw RuntimeException("Installation $this.artifactConstants.installationId not found in datasource")
         logger.info("Project generation started...")
         val existedProject = File(artifactConstants.projectFolder)
         if (existedProject.exists()) {
@@ -120,7 +121,10 @@ class ProjectGeneratorService(private var artifactConstants: ArtifactConstants, 
             artifactConstants.projectFolder,
             mapOf(
                 "targetArtifactVersion" to artifactConstants.targetArtifactVersion,
-                "targetArtifactGroup" to artifactConstants.targetArtifactGroup
+                "targetArtifactGroup" to artifactConstants.targetArtifactGroup,
+                "repoUri" to artifactConstants.repositoryUri.toString(),
+                "repoUsername" to artifactConstants.repositoryUsername,
+                "repoPassword" to artifactConstants.repositoryPassword
             )
         )
 

@@ -7,7 +7,8 @@ plugins {
 }
 
 group = "ru.kazantsev.nsd.sdk"
-version = "1.1.4.3"
+version = "1.2"
+
 
 repositories {
     mavenCentral()
@@ -71,7 +72,7 @@ publishing {
 }
 
 dependencies {
-    implementation("ru.kazantsev.nsd:basic_api_connector:1.0.1")
+    implementation("ru.kazantsev.nsd:basic_api_connector:1.0.4")
     implementation("ru.kazantsev.nsd.sdk:upper_level_classes:1.0.0")
     implementation("org.slf4j:slf4j-api:2.0.9")
     implementation("ch.qos.logback:logback-classic:1.4.11")

@@ -1,6 +1,7 @@
 package ru.kazantsev.nsd.sdk.gradle_plugin.artifact_generator
 
 import java.io.File
+import java.net.URI
 
 
 /**
@@ -48,6 +49,18 @@ class ArtifactConstants {
          * Наименование класса с метаинформацией по умолчанию
          */
         const val defaultGeneratedMetaClassName : String = "GeneratedMeta"
+        /**
+         * Uri до моего github репозитория
+         */
+        const val exekiRepoUri = "https://maven.pkg.github.com/exeki/*"
+        /**
+         * Имя на github теккущего пользователя, которое берется из переменной окружения
+         */
+        private val userGithubName = System.getenv("GITHUB_USERNAME")
+        /**
+         * Токен на github теккущего пользователя, который берется из переменной окружения
+         */
+        private val userGithubToken = System.getenv("GITHUB_TOKEN")
     }
 
     /**
@@ -147,6 +160,47 @@ class ArtifactConstants {
      * Папка исходников сгенерированного проекта
      */
     val generatedProjectSrcPath: String
+
+    /**
+     * Этот uri будет интегрирован в build.gradle сгенерированного проекта
+     */
+    var repositoryUri : URI = URI(exekiRepoUri)
+
+    /**
+     * Этот username будет интегрирован в build.gradle сгенерированного проекта
+     */
+    var repositoryUsername : String? = userGithubName
+
+    /**
+     * Этот password будет интегрирован в build.gradle сгенерированного проекта
+     */
+    var repositoryPassword : String? = userGithubToken
+
+    /**
+     * Указать репозиторий, из которого происходит затягивание
+     * дополнительных зависимостей для сгенерированного артефакта фейковых классов.
+     * Разрешены только maven репозитории
+     * @param uri ссылка на репозиторий
+     */
+    fun setRepository(uri: URI) {
+        this.repositoryUri = uri
+        this.repositoryUsername = null
+        this.repositoryPassword = null
+    }
+
+    /**
+     * Указать репозиторий, из которого происходит затягивание
+     * дополнительных зависимостей для сгенерированного артефакта фейковых классов.
+     * Разрешены только maven репозитории
+     * @param uri ссылка на репозиторий
+     * @param username имя пользователя
+     * @param password пароль
+     */
+    fun setRepository(uri: URI, username: String, password: String) {
+        setRepository(uri)
+        this.repositoryUsername = username
+        this.repositoryPassword = password
+    }
 
     /**
      * Получить наименование для класса на основании кода метакласса NSD
