@@ -36,7 +36,8 @@ pluginManagement {
 plugins {
     id("java")
     id("groovy")
-    id("nsd_sdk") version "1.2.1"
+    //Версия может быть устаревшей, последнюю версию можете найти в разделе packages текушего репозиторирия
+    id("nsd_sdk") version "1.2.2"
 }
 ```
 
