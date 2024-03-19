@@ -21,8 +21,8 @@ class SourceSetsService(private val navigator: NavigatorService) {
 
     val scriptSourceSetPath: String = "src/main/scripts"
     var sourceSets: MutableSet<String> = mutableSetOf(
-        "src/main/groovy",
-        "src/main/modules",
+        "src\\main\\groovy",
+        "src\\main\\modules",
         scriptSourceSetPath
     )
     var consoleFilePath: String = CodeRunnerService.defaultRunningScript
@@ -57,11 +57,11 @@ class SourceSetsService(private val navigator: NavigatorService) {
 
     fun createSourceSetsFolders() {
         println("Checking src folders...")
-        val sourceSetContainer = navigator.project.getExtensions().getByType(SourceSetContainer::class.java)
+        val sourceSetContainer = navigator.project.extensions.getByType(SourceSetContainer::class.java)
         val main = sourceSetContainer.maybeCreate(SourceSet.MAIN_SOURCE_SET_NAME)
         var created = 0
         sourceSets.forEach {
-            val file = File(it)
+            val file = File("${navigator.project.projectDir.path}\\$it")
             if (!file.exists()) {
                 println("Creating src folder \"${it}\".")
                 file.mkdirs()
@@ -78,9 +78,9 @@ class SourceSetsService(private val navigator: NavigatorService) {
         if (!scriptFolder.exists()) scriptFolder.mkdirs()
         var created = 0
         packageFolders.forEach {
-            val file = File("${scriptFolder}\\${it}")
+            val file = File("${navigator.project.projectDir.path}/${scriptSourceSetPath}/${it}")
             if (!file.exists()) {
-                println("Creating package folder \"${it}\".")
+                println("Creating script package folder \"$it\".")
                 file.mkdirs()
                 created++
             }
