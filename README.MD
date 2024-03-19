@@ -113,7 +113,7 @@ sdk.default("MY_INSTALLATION_ID")
 При использовании этой функции плагин по умолчанию подключает библиотеки:
 - [nsd.sdk.global_variables](https://github.com/exeki/nsd.sdk.global_variables) - используется как плейсхолдер API системы, полезна для написания скриптов;
 - [nsd.basic_api_connector](https://github.com/exeki/nsd.basic_api_connector) - используется для соеденинения с NSD по http, то есть позволяет запускать операции/обработки NSD из IDE (в тч отправлять скрипты).
-- [nsd.json_rpc_connector](https://github.com/exeki/nsd.json_rpc_connector) - используется для соеденинения с NSD по http. Не забудьте разместить модуль [jsonRpc](https://github.com/exeki/ru.itsm365.jsonRpc) в инсталляции, если хотите использовать данную библиотеку.
+- [nsd.json_rpc_connector](https://github.com/exeki/nsd.json_rpc_connector) - используется для соеденинения с NSD по http. Не забудьте разместить модуль [jsonRpc](https://github.com/exeki/ru.itsm365.jsonRpc_doc) в инсталляции, если хотите использовать данную библиотеку.
 
 А так же репозитории для зависимостей:
 - MavenLocal
