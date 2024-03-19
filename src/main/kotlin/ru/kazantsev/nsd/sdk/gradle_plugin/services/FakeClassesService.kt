@@ -47,7 +47,7 @@ class FakeClassesService(private val navigator: NavigatorService) {
             println("Fake classes jar file generation in maven local repository is completed.")
         } else println("Fake classes jar exists in maven local repository.")
 
-        navigator.dependencyService.dependencyIds.add(getTargetArtifactId())
+        navigator.project.dependencies.add("implementation", getTargetArtifactId())
 
         val metainfoService = navigator.metainfoService
         metainfoService.fakeClassesDependencyAdded = true

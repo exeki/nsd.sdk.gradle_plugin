@@ -14,6 +14,7 @@ class AfterEvaluateService(private val navigator: NavigatorService) {
     var needToAddDependencies = false
     var needToCreateSourceDirs = false
     var needToCreateConsoleFile = false
+    var needToCreateScriptPackages = false
     fun process() {
         println()
         println("NSD SDK")
@@ -49,11 +50,12 @@ class AfterEvaluateService(private val navigator: NavigatorService) {
             if(needToAddDependencies) navigator.dependencyService.addDependenciesToProject()
         }
 
-        if(needToCreateSourceDirs || needToCreateConsoleFile) {
+        if(needToCreateSourceDirs || needToCreateConsoleFile || needToCreateScriptPackages) {
             println()
             println("SOURCE SETS")
             if(needToCreateSourceDirs) navigator.sourceSetsService.createSourceSetsFolders()
             if(needToCreateConsoleFile) navigator.sourceSetsService.createConsoleFile()
+            if(needToCreateScriptPackages) navigator.sourceSetsService.createScriptPackages()
         }
 
     }

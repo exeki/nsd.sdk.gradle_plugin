@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "ru.kazantsev.nsd.sdk"
-version = "1.2"
+version = "1.2.2"
 
 
 repositories {
@@ -57,7 +57,16 @@ tasks {
         from(sourceSets.main.get().allSource)
         archiveClassifier.set("sources")
     }
+
+    register("testdep") {
+        doLast{
+            configurations.compileClasspath
+            val dep = configurations.compileClasspath.get().find { it.name == "dso_test_fake_classes-1.0.0.jar"}
+            println(dep == null)
+        }
+    }
 }
+
 publishing {
     repositories {
         maven {

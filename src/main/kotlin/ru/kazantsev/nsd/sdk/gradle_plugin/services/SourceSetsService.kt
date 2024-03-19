@@ -1,6 +1,5 @@
 package ru.kazantsev.nsd.sdk.gradle_plugin.services
 
-import org.gradle.api.tasks.GroovySourceSet
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
 import java.io.File
@@ -20,8 +19,28 @@ class SourceSetsService(private val navigator: NavigatorService) {
         """.trimIndent()
     }
 
+    val scriptSourceSetPath: String = "src/main/scripts"
+    var sourceSets: MutableSet<String> = mutableSetOf(
+        "src/main/groovy",
+        "src/main/modules",
+        scriptSourceSetPath
+    )
     var consoleFilePath: String = CodeRunnerService.defaultRunningScript
-    var sourceSets: MutableSet<String> = mutableSetOf("src/main/groovy", "src/main/modules", "src/main/scripts")
+    var packageFolders: MutableSet<String> = mutableSetOf(
+        "attrFiltration",
+        "calculationOnEdit",
+        "eventActionConditions",
+        "eventActions",
+        "migration\\console",
+        "migration\\scheduledTasks",
+        "permissions",
+        "scheduledTasks",
+        "stateActions\\fromState",
+        "stateActions\\fromStateCondition",
+        "stateActions\\inState",
+        "stateActions\\inStateCondition"
+    )
+
     fun createConsoleFile() {
         val consoleFile = File(consoleFilePath)
         if (!consoleFile.exists()) {
@@ -43,13 +62,29 @@ class SourceSetsService(private val navigator: NavigatorService) {
         var created = 0
         sourceSets.forEach {
             val file = File(it)
-            if(!file.exists()) {
+            if (!file.exists()) {
                 println("Creating src folder \"${it}\".")
                 file.mkdirs()
-                created++;
+                created++
             }
             main.java.srcDir(it)
         }
-        if(created == 0) println("All folders exists.")
+        if (created == 0) println("All folders exists.")
+    }
+
+    fun createScriptPackages() {
+        println("Checking package folders...")
+        val scriptFolder = File(scriptSourceSetPath)
+        if (!scriptFolder.exists()) scriptFolder.mkdirs()
+        var created = 0
+        packageFolders.forEach {
+            val file = File("${scriptFolder}\\${it}")
+            if (!file.exists()) {
+                println("Creating package folder \"${it}\".")
+                file.mkdirs()
+                created++
+            }
+        }
+        if (created == 0) println("All folders exists.")
     }
 }

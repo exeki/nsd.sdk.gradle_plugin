@@ -5,12 +5,13 @@ import java.net.URI
 
 abstract class Extension(private val navigator: NavigatorService) {
 
-    fun setTargetMetaClasses (set : Set<String> ){
+    fun setTargetMetaClasses(set: Set<String>) {
         navigator.fakeClassesService.targetMetaclasses = set
     }
 
-    fun setConsoleScriptPath(path : String){
+    fun setConsoleScriptPath(path: String) {
         navigator.codeRunnerService.consoleScriptPath = path
+        navigator.sourceSetsService.consoleFilePath = path
     }
 
     fun setInstallation(installationId: String) {
@@ -61,7 +62,6 @@ abstract class Extension(private val navigator: NavigatorService) {
         navigator.dependencyService.setRepository(uri, username, password)
     }
 
-
     /**
      * Указывает необходимость сгенерировать фейковые классы
      * расширение затянет метаинформацию из NSD создаст артефакт с ними.
@@ -71,7 +71,7 @@ abstract class Extension(private val navigator: NavigatorService) {
         navigator.afterEvaluateService.needAddFakeClasses = bool
     }
 
-    fun addRepositories(bool : Boolean = true){
+    fun addRepositories(bool: Boolean = true) {
         navigator.afterEvaluateService.needToAddRepositories = bool
     }
 
@@ -87,13 +87,18 @@ abstract class Extension(private val navigator: NavigatorService) {
         navigator.afterEvaluateService.needToCreateConsoleFile = bool
     }
 
-    fun default(installationId: String){
+    fun createScriptPackages(bool: Boolean = true) {
+        navigator.afterEvaluateService.needToCreateScriptPackages = bool
+    }
+
+    fun default(installationId: String) {
         setInstallation(installationId)
         addFakeClasses()
         addDependencies()
         addRepositories()
         createConsoleFile()
         createSourceDirs()
+        createScriptPackages()
     }
 
 }
