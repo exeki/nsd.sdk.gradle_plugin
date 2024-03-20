@@ -43,6 +43,25 @@ plugins {
 }
 ```
 
+Если вы не хотите указывать pluginManagement репозиторий в каждом проекте, вы можете в домашней директории gradle **{user.home}/.gradle** создать файл **init.gradle.kts**, в нем указать что для каждого вашего проекта, необходимо внеднять данный репозиторий:
+```kotlin
+settingsEvaluated {
+    pluginManagement {
+        repositories {
+            maven {
+                name = "exekiGithubRepo"
+                url = uri("https://maven.pkg.github.com/exeki/*")
+                credentials {
+                    username = System.getenv("GITHUB_USERNAME")
+                    password = System.getenv("GITHUB_TOKEN")
+                }
+            }
+            mavenCentral()
+        }
+    }
+}
+```
+После этого не нужно будет в каждом проекте указывать репозитории для плагинов, но это не исключит возможность дополнения проекта дополнительными репозиториями.
 
 # Указание инсталляции
 
