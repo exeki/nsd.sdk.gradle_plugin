@@ -129,21 +129,35 @@ sdk.default("MY_INSTALLATION_ID")
 
 ## Автоматическое подключение зависимостей
 
-При использовании этой функции плагин по умолчанию подключает библиотеки:
-- [nsd.sdk.global_variables](https://github.com/exeki/nsd.sdk.global_variables) - используется как плейсхолдер API системы, полезна для написания скриптов;
-- [nsd.basic_api_connector](https://github.com/exeki/nsd.basic_api_connector) - используется для соеденинения с NSD по http, то есть позволяет запускать операции/обработки NSD из IDE (в тч отправлять скрипты).
-- [nsd.json_rpc_connector](https://github.com/exeki/nsd.json_rpc_connector) - используется для соеденинения с NSD по http. Не забудьте разместить модуль [jsonRpc](https://github.com/exeki/ru.itsm365.jsonRpc_doc) в инсталляции, если хотите использовать данную библиотеку.
+При использовании этой функции плагин подключает:
 
-А так же репозитории для зависимостей:
+**Репозитории для зависимостей:**
 - MavenLocal
 - MavenCentral
 - Мой репозиторий GitHub: https://maven.pkg.github.com/exeki/*
 
+**Используемые при разработке или для обработок библиотеки:**
+- [nsd.sdk.global_variables](https://github.com/exeki/nsd.sdk.global_variables) - используется как плейсхолдер API системы, полезна для написания скриптов;
+- [nsd.basic_api_connector](https://github.com/exeki/nsd.basic_api_connector) - используется для соеденинения с NSD по http, то есть позволяет запускать операции/обработки NSD из IDE (в тч отправлять скрипты).
+- [nsd.json_rpc_connector](https://github.com/exeki/nsd.json_rpc_connector) - используется для соеденинения с NSD по http. Не забудьте разместить модуль [jsonRpc](https://github.com/exeki/ru.itsm365.jsonRpc_doc) в инсталляции, если хотите использовать данную библиотеку.
+
+**Библиотеки, которые присутсвуют в приложении NSD и может быть вызваны в скриптах:**
+- org.springframework:spring-web:5.3.16
+- org.apache.poi:poi-ooxml:3.17
+- org.codehaus.groovy.modules.http-builder:http-builder:0.7.1
+- org.slf4j:slf4j-api:2.0.6
+- com.google.code.gson:gson:2.8.9
+- com.google.guava:guava:11.0
+- org.gwtproject:gwt-user:2.10.0
+- javax.activation:javax.activation-api:1.2.0
+- org.codehaus.groovy.modules.http-builder:http-builder:0.7.1
+
 Для использования вызовите в расширешении **sdk** в файле **build.gradle.kts** вашего проекта методы:
 ```kotlin
 sdk {
-    addRepositories()
-    addDependencies()
+    addRepositories() //Добавляет репозитоии
+    addDevDependencies() //Добавляет dev зависимости
+    addAppDependencies() //Добавляет библиотеки исспользуемые в приложении
 }
 ```
 

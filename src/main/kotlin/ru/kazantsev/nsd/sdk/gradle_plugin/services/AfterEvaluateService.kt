@@ -11,7 +11,8 @@ import ru.kazantsev.nsd.sdk.gradle_plugin.tasks.SendScriptTask
 class AfterEvaluateService(private val navigator: NavigatorService) {
     var needAddFakeClasses = false
     var needToAddRepositories = false
-    var needToAddDependencies = false
+    var needToAddDevDependencies = false
+    var needToAddAppDependencies = false
     var needToCreateSourceDirs = false
     var needToCreateConsoleFile = false
     var needToCreateScriptPackages = false
@@ -43,11 +44,12 @@ class AfterEvaluateService(private val navigator: NavigatorService) {
             )
         }
 
-        if(needToAddRepositories || needToAddDependencies) {
+        if(needToAddRepositories || needToAddDevDependencies || needToAddAppDependencies) {
             println()
             println("DEPENDENCY MANAGER")
             if(needToAddRepositories) navigator.dependencyService.addRepositoriesToProject()
-            if(needToAddDependencies) navigator.dependencyService.addDependenciesToProject()
+            if(needToAddDevDependencies) navigator.dependencyService.addDevDependenciesToProject()
+            if(needToAddAppDependencies) navigator.dependencyService.addAppDependenciesToProject()
         }
 
         if(needToCreateSourceDirs || needToCreateConsoleFile || needToCreateScriptPackages) {

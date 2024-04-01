@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "ru.kazantsev.nsd.sdk"
-version = "1.2.3"
+version = "1.3"
 
 
 repositories {
