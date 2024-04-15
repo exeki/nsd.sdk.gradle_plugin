@@ -39,7 +39,7 @@ plugins {
     id("java")
     id("groovy")
     //Версия может быть устаревшей, последнюю версию можете найти в разделе packages текушего репозиторирия
-    id("nsd_sdk") version "1.4"
+    id("nsd_sdk") version "1.4.1"
 }
 ```
 
