@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory
 import ru.kazantsev.nsd.sdk.gradle_plugin.fake_classes.ArtifactConstants
 import ru.kazantsev.nsd.sdk.gradle_plugin.fake_classes.services.MetainfoHolder
 import ru.kazantsev.nsd.sdk.gradle_plugin.fake_classes.client.dto.AttributeDto
+import ru.kazantsev.nsd.sdk.gradle_plugin.fake_classes.client.dto.MetaClassWrapperDto
 import ru.naumen.common.shared.utils.DateTimeInterval
 import ru.naumen.common.shared.utils.IHyperlink
 import ru.naumen.core.server.script.spi.AggregateContainerWrapper
@@ -165,9 +166,13 @@ class FieldGeneratorService(private var artifactConstants: ArtifactConstants, pr
      * @param attr аттрибут, на основании которого генерируется поле
      * @return прототип поля
      */
-    fun generateFieldProto(attr: AttributeDto): FieldSpec.Builder? {
+    fun generateFieldProto(attr: AttributeDto, metaClass : MetaClassWrapperDto): FieldSpec.Builder? {
         logger.debug("Generating field ${attr.code} with type ${attr.type}...")
         logger.debug("Creating proto...")
+        if(attr.code in FORBIDDEN_FIELD_NAMES) {
+            logger.error("Cant generate field named \"${attr.code}\" for metaClass \"${metaClass.fullCode}\", because it has a forbidden name.")
+            return null
+        }
         var fieldProto: FieldSpec.Builder? = null
         val type = AttributeType.getByCode(attr.type)
         try {
@@ -254,7 +259,7 @@ class FieldGeneratorService(private var artifactConstants: ArtifactConstants, pr
                 logger.debug("Creating javaDoc - done")
             }
         } catch (e: Exception) {
-            logger.error("Cant generate field named \"${attr.code}\": ${e.javaClass.simpleName} ${e.message}")
+            logger.error("Cant generate field named \"${attr.code}\" for metaClass \"${metaClass.fullCode}\": ${e.javaClass.simpleName} ${e.message}")
         }
         logger.debug("Field \"${attr.code}\" generation done")
         return fieldProto

@@ -71,7 +71,7 @@ class FakeClassesService(private val navigator: NavigatorService) {
 
     fun generateFullDependency() {
         val metaHolder = MetainfoHolder.getInstance(navigator.connectorParams.userId)
-        println("Fetching metainfo (it may take about 5 minutes)...")
+        println("Fetching metainfo...")
         MetainfoUpdateService(navigator.connectorParams, metaHolder).fetchMeta()
         println("Fetching metainfo - done")
         println("Project generation...")

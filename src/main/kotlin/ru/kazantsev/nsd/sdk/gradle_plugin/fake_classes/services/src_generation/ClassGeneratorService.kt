@@ -71,7 +71,7 @@ class ClassGeneratorService(private val artifactConstants: ArtifactConstants, pr
         logger.debug("Creating class fields...")
         val fieldGenerator = FieldGeneratorService(artifactConstants, metaHolder)
         metaClass.attributes.forEach {
-            val fieldProto = fieldGenerator.generateFieldProto(it)
+            val fieldProto = fieldGenerator.generateFieldProto(it, metaClass)
             if (fieldProto != null) classProto.addField(fieldProto.build())
         }
         logger.debug("Creating class fields - done")
