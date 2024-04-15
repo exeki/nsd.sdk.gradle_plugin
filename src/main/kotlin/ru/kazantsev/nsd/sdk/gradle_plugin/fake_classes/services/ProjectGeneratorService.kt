@@ -1,12 +1,11 @@
-package ru.kazantsev.nsd.sdk.gradle_plugin.artifact_generator
+package ru.kazantsev.nsd.sdk.gradle_plugin.fake_classes.services
 
 import com.squareup.javapoet.*
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import ru.kazantsev.nsd.sdk.gradle_plugin.artifact_generator.data.DbAccess
-import ru.kazantsev.nsd.sdk.gradle_plugin.artifact_generator.data.dto.Installation
-import ru.kazantsev.nsd.sdk.gradle_plugin.artifact_generator.src_generation.ClassGeneratorService
-import ru.kazantsev.nsd.sdk.gradle_plugin.artifact_generator.src_generation.MetainfoClassGeneratorService
+import ru.kazantsev.nsd.sdk.gradle_plugin.fake_classes.ArtifactConstants
+import ru.kazantsev.nsd.sdk.gradle_plugin.fake_classes.services.src_generation.ClassGeneratorService
+import ru.kazantsev.nsd.sdk.gradle_plugin.fake_classes.services.src_generation.MetainfoClassGeneratorService
 import java.io.File
 
 /**
@@ -15,7 +14,7 @@ import java.io.File
  * @param artifactConstants константы генерируемого артефакта (пути, наименования)
  * @param db экземпляр связи с базой данных
  */
-class ProjectGeneratorService(private var artifactConstants: ArtifactConstants, private val db: DbAccess) {
+class ProjectGeneratorService(private var artifactConstants: ArtifactConstants, private val metaHolder: MetainfoHolder) {
 
     private val logger: Logger = LoggerFactory.getLogger(ProjectGeneratorService::class.java)
     private val classLoader: ClassLoader = this.javaClass.classLoader
@@ -53,9 +52,6 @@ class ProjectGeneratorService(private var artifactConstants: ArtifactConstants, 
      * хранилище метаинформации должно быть заранее наполнено
      */
     fun generate() {
-        val inst: Installation =
-            db.installationDao.queryForEq("userId", this.artifactConstants.installationId).firstOrNull()
-                ?: throw RuntimeException("Installation $this.artifactConstants.installationId not found in datasource")
         logger.info("Project generation started...")
         val existedProject = File(artifactConstants.projectFolder)
         if (existedProject.exists()) {
@@ -63,9 +59,9 @@ class ProjectGeneratorService(private var artifactConstants: ArtifactConstants, 
             existedProject.delete()
             logger.info("Existed project deleting - done")
         }
-        val classGenerator = ClassGeneratorService(artifactConstants, db)
+        val classGenerator = ClassGeneratorService(artifactConstants, metaHolder)
         logger.info("Class generation started...")
-        inst.metaClasses.forEach {
+        metaHolder.getAll().forEach {
             val classProto: TypeSpec = classGenerator.generateClassProto(it).build()
             val file = File(artifactConstants.generatedProjectSrcPath)
             val fileContent = JavaFile.builder(artifactConstants.packageName, classProto).build()

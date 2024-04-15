@@ -1,4 +1,4 @@
-package ru.kazantsev.nsd.sdk.gradle_plugin.artifact_generator.data.dto
+package ru.kazantsev.nsd.sdk.gradle_plugin.fake_classes.services.src_generation
 
 import com.fasterxml.jackson.annotation.JsonCreator
 
@@ -30,7 +30,6 @@ enum class AttributeType(private val code: String, private val title: String) {
     CASE_LIST("caseList", "Набор метаклассов"),
     UUID("uuid", ""),
     FILE_CONTENT("fileContent", "Содержимое файла"),
-    UNKNOWN("unknown", "Неизвестно"),
     LOCALIZED_TEXT("localizedText", "Локализованный текст"),
     COLOR("color", "Цвет"),
     SEC_GROUPS("secGroups", "Группы пользователей"),
@@ -38,12 +37,19 @@ enum class AttributeType(private val code: String, private val title: String) {
     MULTI_CLASS_OBJECTS("multiClassObjects", "Мультиклассовые объекты"),
     COMMENT_OBJECTS("commentObjects", "Объекты комментариев"),
     RECORD_TYPE("recordType", "Тип записи"),
-    SYSTEM_STATE("systemState", "Системный статус");
+    SOURCE_CODE("sourceCode", "Текст с подсветкой синтаксиса"),
+    LINKED_CLASSES("linkedClasses", "linkedClasses (не удалось опознать тип)"),
+    METRIC_SEVERITY("metricSeverity", "metricSeverity (не удалось опознать тип)"),
+    METRIC_VALUE("metricValue", "metricValue (не удалось опознать тип)"),
+    EXECUTION_RESULT("executionResult", "executionResult"),
+    SYSTEM_STATE("systemState", "Системный статус"),
+
+    UNKNOWN("unknown", "Неизвестно");
 
     companion object {
         @JsonCreator
-        fun getByCode(code: String): AttributeType? {
-            return entries.find { it.code == code }
+        public fun getByCode(code: String): AttributeType {
+            return entries.find { it.code == code } ?: UNKNOWN
         }
     }
 

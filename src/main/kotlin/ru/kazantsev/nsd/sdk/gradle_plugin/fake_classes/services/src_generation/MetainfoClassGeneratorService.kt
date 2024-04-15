@@ -1,7 +1,7 @@
-package ru.kazantsev.nsd.sdk.gradle_plugin.artifact_generator.src_generation
+package ru.kazantsev.nsd.sdk.gradle_plugin.fake_classes.services.src_generation
 
 import com.squareup.javapoet.*
-import ru.kazantsev.nsd.sdk.gradle_plugin.artifact_generator.ArtifactConstants
+import ru.kazantsev.nsd.sdk.gradle_plugin.fake_classes.ArtifactConstants
 import java.util.stream.Collectors
 import javax.lang.model.element.Modifier
 

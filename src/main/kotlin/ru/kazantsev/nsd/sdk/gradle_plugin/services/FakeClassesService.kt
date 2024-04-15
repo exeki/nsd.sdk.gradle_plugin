@@ -1,17 +1,14 @@
 package ru.kazantsev.nsd.sdk.gradle_plugin.services
 
-import ru.kazantsev.nsd.sdk.gradle_plugin.artifact_generator.JarGeneratorService
-import ru.kazantsev.nsd.sdk.gradle_plugin.artifact_generator.ProjectGeneratorService
-import ru.kazantsev.nsd.sdk.gradle_plugin.artifact_generator.client.MetainfoUpdateService
-import ru.kazantsev.nsd.sdk.gradle_plugin.artifact_generator.data.DbAccess
-import ru.kazantsev.nsd.sdk.gradle_plugin.tasks.BuildSrcTask
-import ru.kazantsev.nsd.sdk.gradle_plugin.tasks.RegenerateAllFakeClassesTask
-import ru.kazantsev.nsd.sdk.gradle_plugin.tasks.RegenerateTargetFakeClassesTask
+import ru.kazantsev.nsd.sdk.gradle_plugin.fake_classes.services.JarGeneratorService
+import ru.kazantsev.nsd.sdk.gradle_plugin.fake_classes.services.ProjectGeneratorService
+import ru.kazantsev.nsd.sdk.gradle_plugin.fake_classes.services.MetainfoHolder
+import ru.kazantsev.nsd.sdk.gradle_plugin.fake_classes.services.MetainfoUpdateService
 import java.io.File
 
 class FakeClassesService(private val navigator: NavigatorService) {
 
-    var targetMetaclasses : Set<String> = setOf()
+    var targetMetaclasses: Set<String> = setOf()
 
     /**
      * Целевое наименование артефакта для полдключения
@@ -45,7 +42,10 @@ class FakeClassesService(private val navigator: NavigatorService) {
             println("Fake classes jar not exists in path \"$dependencyPath\", starting the generation...")
             this.generateFullDependency()
             println("Fake classes jar file generation in maven local repository is completed.")
-        } else println("Fake classes jar exists in maven local repository.")
+        } else {
+            println("Fake classes jar exists in maven local repository:")
+            println(dependencyPath)
+        }
 
         navigator.project.dependencies.add("implementation", getTargetArtifactId())
 
@@ -57,40 +57,28 @@ class FakeClassesService(private val navigator: NavigatorService) {
     }
 
     fun generateTargetClasses(targetMeta: Set<String>) {
-        val db = DbAccess.createDefaultByInstallationId(navigator.connectorParams.userId)
-        try {
-            println("Fetching metainfo...")
-            MetainfoUpdateService(navigator.connectorParams, db).fetchMeta(targetMeta)
-            println("Fetching metainfo - done")
-            println("Project generation...")
-            ProjectGeneratorService(navigator.artifactConstants, db).generate()
-            println("Project generation - done")
-            println("Jar generation...")
-            JarGeneratorService(navigator.artifactConstants, db).generate()
-            println("Jar generation - done")
-        } catch (e: Exception) {
-            throw e
-        } finally {
-            db.connection.close()
-        }
+        val metaHolder = MetainfoHolder.getInstance(navigator.connectorParams.userId)
+        println("Fetching metainfo...")
+        MetainfoUpdateService(navigator.connectorParams, metaHolder).fetchMeta(targetMeta)
+        println("Fetching metainfo - done")
+        println("Project generation...")
+        ProjectGeneratorService(navigator.artifactConstants, metaHolder).generate()
+        println("Project generation - done")
+        println("Jar generation...")
+        JarGeneratorService(navigator.artifactConstants, metaHolder).generate()
+        println("Jar generation - done")
     }
 
     fun generateFullDependency() {
-        val db = DbAccess.createDefaultByInstallationId(navigator.connectorParams.userId)
-        try {
-            println("Fetching metainfo (it may take about 5 minutes)...")
-            MetainfoUpdateService(navigator.connectorParams, db).fetchMeta()
-            println("Fetching metainfo - done")
-            println("Project generation...")
-            ProjectGeneratorService(navigator.artifactConstants, db).generate()
-            println("Project generation - done")
-            println("Jar generation...")
-            JarGeneratorService(navigator.artifactConstants, db).generate()
-            println("Jar generation - done")
-        } catch (e: Exception) {
-            throw e
-        } finally {
-            db.connection.close()
-        }
+        val metaHolder = MetainfoHolder.getInstance(navigator.connectorParams.userId)
+        println("Fetching metainfo (it may take about 5 minutes)...")
+        MetainfoUpdateService(navigator.connectorParams, metaHolder).fetchMeta()
+        println("Fetching metainfo - done")
+        println("Project generation...")
+        ProjectGeneratorService(navigator.artifactConstants, metaHolder).generate()
+        println("Project generation - done")
+        println("Jar generation...")
+        JarGeneratorService(navigator.artifactConstants, metaHolder).generate()
+        println("Jar generation - done")
     }
 }

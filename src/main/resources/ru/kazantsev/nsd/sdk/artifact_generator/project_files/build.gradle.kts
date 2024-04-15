@@ -46,6 +46,6 @@ repositories {
 }
 
 dependencies {
-    api("ru.kazantsev.nsd.sdk:upper_level_classes:1.0.0")
+    api("ru.kazantsev.nsd.sdk:upper_level_classes:1.0.1")
     implementation("org.jetbrains:annotations:16.0.1")
 }

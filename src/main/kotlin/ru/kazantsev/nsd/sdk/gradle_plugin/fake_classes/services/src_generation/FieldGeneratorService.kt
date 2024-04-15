@@ -1,4 +1,4 @@
-package ru.kazantsev.nsd.sdk.gradle_plugin.artifact_generator.src_generation
+package ru.kazantsev.nsd.sdk.gradle_plugin.fake_classes.services.src_generation
 
 import com.squareup.javapoet.*
 import org.jetbrains.annotations.NotNull
@@ -6,10 +6,9 @@ import org.jetbrains.annotations.Nullable
 import org.jsoup.Jsoup
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import ru.kazantsev.nsd.sdk.gradle_plugin.artifact_generator.data.DbAccess
-import ru.kazantsev.nsd.sdk.gradle_plugin.artifact_generator.data.dto.Attribute
-import ru.kazantsev.nsd.sdk.gradle_plugin.artifact_generator.data.dto.AttributeType
-import ru.kazantsev.nsd.sdk.gradle_plugin.artifact_generator.ArtifactConstants
+import ru.kazantsev.nsd.sdk.gradle_plugin.fake_classes.ArtifactConstants
+import ru.kazantsev.nsd.sdk.gradle_plugin.fake_classes.services.MetainfoHolder
+import ru.kazantsev.nsd.sdk.gradle_plugin.fake_classes.client.dto.AttributeDto
 import ru.naumen.common.shared.utils.DateTimeInterval
 import ru.naumen.common.shared.utils.IHyperlink
 import ru.naumen.core.server.script.spi.AggregateContainerWrapper
@@ -23,15 +22,17 @@ import ru.naumen.metainfo.shared.elements.sec.ISGroup
 import java.lang.Exception
 import java.lang.reflect.Type
 import javax.lang.model.element.Modifier
+import ru.naumen.common.shared.utils.SourceCode
 
 /**
  * Служба для генерации прототипов полей
  */
-class FieldGeneratorService(private var artifactConstants: ArtifactConstants, private val db: DbAccess) {
+class FieldGeneratorService(private var artifactConstants: ArtifactConstants, private val metaHolder: MetainfoHolder) {
 
     companion object {
         val FORBIDDEN_FIELD_NAMES = setOf("private", "protected", "interface", "class", "int", "if", "boll")
     }
+
     private val logger: Logger = LoggerFactory.getLogger(FieldGeneratorService::class.java)
 
     /**
@@ -40,7 +41,7 @@ class FieldGeneratorService(private var artifactConstants: ArtifactConstants, pr
      * @param attr атрибут, значения которого будет задействованы
      * @return прототип поля без каких либо дополнительных элементов
      */
-    private fun getFieldProto(type: Type, attr: Attribute): FieldSpec.Builder {
+    private fun getFieldProto(type: Type, attr: AttributeDto): FieldSpec.Builder {
         val clazz = when (type) {
             Long::class.java -> ClassName.get("java.lang", "Long")
             Boolean::class.java -> ClassName.get("java.lang", "Boolean")
@@ -61,8 +62,8 @@ class FieldGeneratorService(private var artifactConstants: ArtifactConstants, pr
      * @param attr атрибут, значения которого будет задействованы
      * @return прототип поля без каких либо дополнительных элементов
      */
-    private fun getFieldProto(meta: String, attr: Attribute): FieldSpec.Builder {
-        val className: ClassName = if (db.metaClassDao.queryForEq("fullCode", meta).firstOrNull() != null) {
+    private fun getFieldProto(meta: String, attr: AttributeDto): FieldSpec.Builder {
+        val className: ClassName = if (metaHolder.getByCode(meta) != null) {
             ClassName.get(artifactConstants.packageName, artifactConstants.getClassNameFromMetacode(meta))
         } else {
             ClassName.get(Object::class.java)
@@ -82,7 +83,7 @@ class FieldGeneratorService(private var artifactConstants: ArtifactConstants, pr
      * @param attr атрибут, значения которого будет задействованы
      * @return прототип поля без каких либо дополнительных элементов
      */
-    private fun getGenericFieldProto(type: Class<*>, genericType: Class<*>, attr: Attribute): FieldSpec.Builder {
+    private fun getGenericFieldProto(type: Class<*>, genericType: Class<*>, attr: AttributeDto): FieldSpec.Builder {
         return FieldSpec.builder(
             ParameterizedTypeName.get(
                 ClassName.get(type),
@@ -101,9 +102,9 @@ class FieldGeneratorService(private var artifactConstants: ArtifactConstants, pr
      * @param attr атрибут, значения которого будет задействованы
      * @return прототип поля без каких либо дополнительных элементов
      */
-    private fun getGenericFieldProto(type: Class<*>, attr: Attribute): FieldSpec.Builder {
+    private fun getGenericFieldProto(type: Class<*>, attr: AttributeDto): FieldSpec.Builder {
         val className: ClassName =
-            if (db.metaClassDao.queryForEq("fullCode", attr.relatedMetaClass!!).firstOrNull() != null) {
+            if (metaHolder.getByCode(attr.relatedMetaClass!!) != null) {
                 ClassName.get(
                     artifactConstants.packageName,
                     artifactConstants.getClassNameFromMetacode(attr.relatedMetaClass!!)
@@ -120,7 +121,7 @@ class FieldGeneratorService(private var artifactConstants: ArtifactConstants, pr
     /**
      * Заменяет все запрещенные в html символы
      */
-    fun replaceHtmlSymbols(str: String): String {
+    private fun replaceHtmlSymbols(str: String): String {
         return str
             .replace("&", "&amp;")
             .replace("<", "&lt;")
@@ -135,11 +136,11 @@ class FieldGeneratorService(private var artifactConstants: ArtifactConstants, pr
      * @param attr аттрибут, на основании которого генерируется поле и javaDoc
      * @return прототип CodeBlock.Builder
      */
-    private fun generateFieldJavaDocProto(attr: Attribute): CodeBlock.Builder {
+    private fun generateFieldJavaDocProto(attr: AttributeDto): CodeBlock.Builder {
         val javaDocProto = CodeBlock.builder()
             .add("<strong>Наименование: </strong>${replaceHtmlSymbols(attr.title)};<br>\n")
             .add("<strong>Код: </strong>${attr.code};<br>\n")
-            .add("<strong>Тип: </strong>${attr.type.getTitle()};<br>\n")
+            .add("<strong>Тип: </strong>${AttributeType.getByCode(attr.type).getTitle()};<br>\n")
         if (attr.relatedMetaClass != null) javaDocProto.add("<strong>Связанный метакласс: </strong>${attr.relatedMetaClass};<br>\n")
         javaDocProto
             .add("<strong>Обязателен: </strong>${attr.required};<br>\n")
@@ -148,7 +149,13 @@ class FieldGeneratorService(private var artifactConstants: ArtifactConstants, pr
             .add("<strong>Системный: </strong>${attr.hardcoded};<br>\n")
         if (attr.description != null && attr.description!!.isNotEmpty()) {
             val clearDescription: String = Jsoup.parse(attr.description!!).text()
-            if (clearDescription.isNotEmpty()) javaDocProto.add("<strong>Описание: </strong> ${replaceHtmlSymbols(clearDescription)};")
+            if (clearDescription.isNotEmpty()) javaDocProto.add(
+                "<strong>Описание: </strong> ${
+                    replaceHtmlSymbols(
+                        clearDescription
+                    )
+                };"
+            )
         }
         return javaDocProto
     }
@@ -158,12 +165,13 @@ class FieldGeneratorService(private var artifactConstants: ArtifactConstants, pr
      * @param attr аттрибут, на основании которого генерируется поле
      * @return прототип поля
      */
-    fun generateFieldProto(attr: Attribute): FieldSpec.Builder? {
-        logger.debug("Generating field ${attr.code} with type ${attr.type.getCode()}...")
+    fun generateFieldProto(attr: AttributeDto): FieldSpec.Builder? {
+        logger.debug("Generating field ${attr.code} with type ${attr.type}...")
         logger.debug("Creating proto...")
         var fieldProto: FieldSpec.Builder? = null
+        val type = AttributeType.getByCode(attr.type)
         try {
-            fieldProto = when (attr.type) {
+            fieldProto = when (type) {
                 AttributeType.DOUBLE -> getFieldProto(Double::class.java, attr)
                 AttributeType.AGGREGATE -> getFieldProto(AggregateContainerWrapper::class.java, attr)
                 AttributeType.BACK_BO_LINKS -> getGenericFieldProto(
@@ -228,6 +236,11 @@ class FieldGeneratorService(private var artifactConstants: ArtifactConstants, pr
                 AttributeType.SYSTEM_OBJECT -> getFieldProto(Object::class.java, attr)
                 AttributeType.SYSTEM_STATE -> getFieldProto(Object::class.java, attr)
                 AttributeType.LOCALIZED_TEXT -> getFieldProto(String::class.java, attr)
+                AttributeType.SOURCE_CODE -> getFieldProto(SourceCode::class.java, attr)
+                AttributeType.LINKED_CLASSES -> getFieldProto(Object::class.java, attr)
+                AttributeType.METRIC_SEVERITY -> getFieldProto(Object::class.java, attr)
+                AttributeType.METRIC_VALUE -> getFieldProto(Object::class.java, attr)
+                AttributeType.EXECUTION_RESULT -> getFieldProto(Object::class.java, attr)
             }
             if (fieldProto != null) {
                 fieldProto.initializer("null")

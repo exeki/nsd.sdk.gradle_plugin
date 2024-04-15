@@ -1,4 +1,4 @@
-package ru.kazantsev.nsd.sdk.gradle_plugin.artifact_generator
+package ru.kazantsev.nsd.sdk.gradle_plugin.fake_classes
 
 import java.io.File
 import java.net.URI

@@ -7,13 +7,12 @@
 
 package tests.gen
 
-import ru.kazantsev.nsd.sdk.gradle_plugin.artifact_generator.client.MetainfoUpdateService
-import ru.kazantsev.nsd.sdk.gradle_plugin.artifact_generator.JarGeneratorService
+import ru.kazantsev.nsd.sdk.gradle_plugin.fake_classes.services.MetainfoUpdateService
+import ru.kazantsev.nsd.sdk.gradle_plugin.fake_classes.services.JarGeneratorService
+import ru.kazantsev.nsd.sdk.gradle_plugin.fake_classes.services.ProjectGeneratorService
 
-import static tests.TestUtils.getConnectorParams
-import static tests.TestUtils.getDb
-import static tests.TestUtils.artifactConstants
+import static tests.TestUtils.*
 
-new MetainfoUpdateService(connectorParams, db).fetchMeta()
-JarGeneratorService get = new JarGeneratorService(artifactConstants, db)
-get.generate()
+new MetainfoUpdateService(connectorParams, metainfoHolder).fetchMeta()
+new ProjectGeneratorService(artifactConstants, metainfoHolder).generate()
+new JarGeneratorService(artifactConstants, metainfoHolder).generate()

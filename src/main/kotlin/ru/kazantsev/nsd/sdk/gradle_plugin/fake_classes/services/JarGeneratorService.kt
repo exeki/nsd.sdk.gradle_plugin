@@ -1,15 +1,15 @@
-package ru.kazantsev.nsd.sdk.gradle_plugin.artifact_generator
+package ru.kazantsev.nsd.sdk.gradle_plugin.fake_classes.services
 
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import ru.kazantsev.nsd.sdk.gradle_plugin.artifact_generator.data.DbAccess
+import ru.kazantsev.nsd.sdk.gradle_plugin.fake_classes.ArtifactConstants
 import java.io.File
 
 /**
  * @param artifactConstants константы артефакта
  * @param db объект соединения с базой данных
  */
-class JarGeneratorService(private val artifactConstants: ArtifactConstants, private val db: DbAccess) {
+class JarGeneratorService(private val artifactConstants: ArtifactConstants, private val metaHolder: MetainfoHolder) {
 
     companion object {
         const val BUILD_TASK = "publishToMavenLocal"

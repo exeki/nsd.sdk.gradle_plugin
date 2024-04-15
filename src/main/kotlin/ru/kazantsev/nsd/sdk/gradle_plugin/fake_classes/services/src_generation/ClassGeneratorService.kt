@@ -1,4 +1,4 @@
-package ru.kazantsev.nsd.sdk.gradle_plugin.artifact_generator.src_generation
+package ru.kazantsev.nsd.sdk.gradle_plugin.fake_classes.services.src_generation
 
 import com.squareup.javapoet.CodeBlock
 import com.squareup.javapoet.ParameterizedTypeName
@@ -6,9 +6,9 @@ import com.squareup.javapoet.TypeSpec
 import org.jsoup.Jsoup
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import ru.kazantsev.nsd.sdk.gradle_plugin.artifact_generator.data.DbAccess
-import ru.kazantsev.nsd.sdk.gradle_plugin.artifact_generator.data.dto.MetaClass
-import ru.kazantsev.nsd.sdk.gradle_plugin.artifact_generator.ArtifactConstants
+import ru.kazantsev.nsd.sdk.gradle_plugin.fake_classes.ArtifactConstants
+import ru.kazantsev.nsd.sdk.gradle_plugin.fake_classes.services.MetainfoHolder
+import ru.kazantsev.nsd.sdk.gradle_plugin.fake_classes.client.dto.MetaClassWrapperDto
 import ru.naumen.common.shared.utils.ISProperties
 import ru.naumen.core.server.script.spi.IScriptDtObject
 import javax.lang.model.element.Modifier
@@ -16,7 +16,7 @@ import javax.lang.model.element.Modifier
 /**
  * Служба, отвечающая за генерацию прототипов кода классов
  */
-class ClassGeneratorService(private val artifactConstants: ArtifactConstants, private val db : DbAccess) {
+class ClassGeneratorService(private val artifactConstants: ArtifactConstants, private val metaHolder : MetainfoHolder) {
 
     val generatedClasses: MutableSet<String> = mutableSetOf()
 
@@ -27,7 +27,7 @@ class ClassGeneratorService(private val artifactConstants: ArtifactConstants, pr
      * @param metaClass метакласс для которого нужен javaDoc
      * @return заранее собранный CodeBlock.Builder
      */
-    private fun generateClassJavaDocProto(metaClass: MetaClass): CodeBlock.Builder {
+    private fun generateClassJavaDocProto(metaClass: MetaClassWrapperDto): CodeBlock.Builder {
 
         val javaDocProto = CodeBlock.builder()
             .add("<strong>Наименование: </strong>${metaClass.title};<br>\n")
@@ -36,7 +36,7 @@ class ClassGeneratorService(private val artifactConstants: ArtifactConstants, pr
             .add("<strong>Назначение ответственного: </strong>${metaClass.hasResponsible};<br>\n")
             .add("<strong>Системный: </strong>${metaClass.hardcoded};<br>\n")
         if (metaClass.parent != null)
-            javaDocProto.add("<strong>Родитель: </strong>${metaClass.parent!!.fullCode.replace('$', artifactConstants.classDelimiter)};<br>\n")
+            javaDocProto.add("<strong>Родитель: </strong>${metaClass.parent!!.replace('$', artifactConstants.classDelimiter)};<br>\n")
         if (metaClass.description != null && metaClass.description!!.isNotEmpty()) {
             var clearDescription: String = Jsoup.parse(metaClass.description!!).text().replace('$', artifactConstants.classDelimiter)
             if (clearDescription.isNotEmpty()) {
@@ -52,7 +52,7 @@ class ClassGeneratorService(private val artifactConstants: ArtifactConstants, pr
      * @param metaClass метакласс для которого нужен прототип
      * @return заранее собранный TypeSpec.Builder
      */
-    fun generateClassProto(metaClass: MetaClass): TypeSpec.Builder {
+    fun generateClassProto(metaClass: MetaClassWrapperDto): TypeSpec.Builder {
         logger.info("Generating class ${metaClass.fullCode}...")
         logger.debug("Creating class proto...")
         val className = artifactConstants.getClassNameFromMetacode(metaClass.fullCode)
@@ -69,7 +69,7 @@ class ClassGeneratorService(private val artifactConstants: ArtifactConstants, pr
         classProto.addJavadoc(generateClassJavaDocProto(metaClass).build())
         logger.debug("Generating javaDoc - done")
         logger.debug("Creating class fields...")
-        val fieldGenerator = FieldGeneratorService(artifactConstants, db)
+        val fieldGenerator = FieldGeneratorService(artifactConstants, metaHolder)
         metaClass.attributes.forEach {
             val fieldProto = fieldGenerator.generateFieldProto(it)
             if (fieldProto != null) classProto.addField(fieldProto.build())

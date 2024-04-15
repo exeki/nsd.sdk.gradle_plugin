@@ -154,11 +154,22 @@ abstract class Extension(private val navigator: NavigatorService) {
      */
     fun default(installationId: String) {
         setInstallation(installationId)
+        addRepositories()
         addFakeClasses()
         addDevDependencies()
         addAppDependencies()
-        addRepositories()
         createConsoleFile()
+        createSourceDirs()
+        createScriptPackages()
+    }
+
+    /**
+     * Включает все функции в конфигурации по умолчанию, кроме тех, которым требуется инсталлляция
+     */
+    fun default() {
+        addRepositories()
+        addDevDependencies()
+        addAppDependencies()
         createSourceDirs()
         createScriptPackages()
     }

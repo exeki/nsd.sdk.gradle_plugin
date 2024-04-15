@@ -1,4 +1,4 @@
-package ru.kazantsev.nsd.sdk.gradle_plugin.artifact_generator.client.nsd_connector.dto
+package ru.kazantsev.nsd.sdk.gradle_plugin.fake_classes.client.dto
 
 /**
  * DTO с информацией по метаклассу
@@ -11,7 +11,6 @@ class MetaClassWrapperDto  {
     var parent: String? = null
     var children: List<String> = listOf()
     var attributes: List<AttributeDto> = listOf()
-    var attributeGroups: List<AttributeGroupDto> = listOf()
     var description : String? = null
     var hasResponsible : Boolean = false
     var hasWorkflow  : Boolean = false

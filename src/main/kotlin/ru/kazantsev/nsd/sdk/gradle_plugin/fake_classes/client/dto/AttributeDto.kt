@@ -1,4 +1,4 @@
-package ru.kazantsev.nsd.sdk.gradle_plugin.artifact_generator.client.nsd_connector.dto
+package ru.kazantsev.nsd.sdk.gradle_plugin.fake_classes.client.dto
 
 /**
  * DTO с информацией по атрибуту
