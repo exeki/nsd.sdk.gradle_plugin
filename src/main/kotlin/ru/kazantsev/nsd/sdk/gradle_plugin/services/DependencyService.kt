@@ -8,7 +8,7 @@ import java.net.URI
 class DependencyService(private val navigator: NavigatorService) {
     companion object {
         val DEV_DEPENDENCY_IDS = setOf(
-            "ru.kazantsev.nsd:json_rpc_connector:1.0.1",
+            "ru.kazantsev.nsd:json_rpc_connector:1.1",
             "ru.kazantsev.nsd.sdk:global_variables:1.0.1"
         )
         val APP_DEPENDENCY_IDS = setOf(
