@@ -1,13 +1,17 @@
+import org.gradle.kotlin.dsl.withType
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
+
 plugins {
-    kotlin("jvm") version "1.9.10"
+    kotlin("jvm") version "2.1.0"
     id("maven-publish")
     id("java-gradle-plugin")
-    id("org.jetbrains.dokka") version "1.9.10"
+    id("org.jetbrains.dokka") version  "2.1.0"
     id("groovy")
 }
 
 group = "ru.kazantsev.nsd.sdk"
-version = "1.4.2"
+version = "1.4.3"
 
 
 repositories {
@@ -32,8 +36,13 @@ gradlePlugin {
 }
 
 tasks {
-    compileKotlin {
-        kotlinOptions.jvmTarget = "11"
+    compileJava {
+        targetCompatibility = JavaVersion.VERSION_21.majorVersion
+        sourceCompatibility = JavaVersion.VERSION_21.majorVersion
+    }
+
+    withType<KotlinJvmCompile>().configureEach {
+        compilerOptions.jvmTarget.set(JvmTarget.JVM_21)
     }
 
     javadoc {
@@ -44,10 +53,6 @@ tasks {
         outputDirectory.set(buildDir.resolve("docs\\javadoc"))
     }
 
-    compileJava {
-        targetCompatibility = "11"
-    }
-
     register<Jar>("javadocJar") {
         from(getByName("javadoc").outputs.files)
         archiveClassifier.set("javadoc")
@@ -56,14 +61,6 @@ tasks {
     register<Jar>("sourcesJar") {
         from(sourceSets.main.get().allSource)
         archiveClassifier.set("sources")
-    }
-
-    register("testdep") {
-        doLast{
-            configurations.compileClasspath
-            val dep = configurations.compileClasspath.get().find { it.name == "dso_test_fake_classes-1.0.0.jar"}
-            println(dep == null)
-        }
     }
 }
 
@@ -82,7 +79,7 @@ publishing {
 
 dependencies {
     implementation("ru.kazantsev.nsd:basic_api_connector:1.0.4")
-    implementation("ru.kazantsev.nsd.sdk:upper_level_classes:1.0.1")
+    implementation("ru.kazantsev.nsd.sdk:upper_level_classes:1.5.0")
     implementation("org.slf4j:slf4j-api:2.0.9")
     implementation("ch.qos.logback:logback-classic:1.4.11")
     implementation("com.fasterxml.jackson.core:jackson-databind:2.15.2")

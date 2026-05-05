@@ -1,29 +1,86 @@
-name: Gradle Package
+name: Maven Publish
 
-on: push
+on:
+  push:
+    branches:
+      - "**"
+
+permissions:
+  contents: read
+  packages: write
 
 jobs:
-  build:
-
+  publish:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
 
     steps:
-      - uses: actions/checkout@v4
-      - name: Set up JDK 11
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
         uses: actions/setup-java@v4
         with:
-          java-version: '11'
-          distribution: 'temurin'
+          distribution: temurin
+          java-version: "21"
 
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@417ae3ccd767c252f5661f1ace9f835f9654f2b5 # v3.1.0
+      - name: Make Gradle executable
+        run: chmod +x ./gradlew
 
-      - name: Publish to GitHub Packages
-        run: gradle publish
+      - name: Read Gradle version
+        id: version
+        run: |
+          GROUP=$(./gradlew properties -q | awk -F': ' '/^group:/ { print $2; exit }')
+          NAME=$(./gradlew properties -q | awk -F': ' '/^name:/ { print $2; exit }')
+          VERSION=$(./gradlew properties -q | awk -F': ' '/^version:/ { print $2; exit }')
+          if [ -z "$GROUP" ]; then
+            echo "Unable to read Gradle project group." >&2
+            exit 1
+          fi
+          if [ -z "$NAME" ]; then
+            echo "Unable to read Gradle project name." >&2
+            exit 1
+          fi
+          if [ -z "$VERSION" ]; then
+            echo "Unable to read Gradle project version." >&2
+            exit 1
+          fi
+          GROUP_PATH=$(echo "$GROUP" | tr '.' '/')
+          echo "group=$GROUP" >> "$GITHUB_OUTPUT"
+          echo "group_path=$GROUP_PATH" >> "$GITHUB_OUTPUT"
+          echo "artifact=$NAME" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Publishing coordinates: $GROUP:$NAME:$VERSION"
+
+      - name: Check published version
+        id: published
+        env:
+          OWNER: ${{ github.repository_owner }}
+          REPO: ${{ github.event.repository.name }}
+          GROUP_PATH: ${{ steps.version.outputs.group_path }}
+          ARTIFACT: ${{ steps.version.outputs.artifact }}
+          VERSION: ${{ steps.version.outputs.version }}
+          GITHUB_USERNAME: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          POM_URL="https://maven.pkg.github.com/$OWNER/$REPO/$GROUP_PATH/$ARTIFACT/$VERSION/$ARTIFACT-$VERSION.pom"
+          STATUS=$(curl -sS -o /dev/null -w "%{http_code}" \
+            -u "$GITHUB_USERNAME:$GITHUB_TOKEN" \
+            "$POM_URL")
+
+          if [ "$STATUS" = "302" ]; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "Version already published: $POM_URL"
+          elif [ "$STATUS" = "404" ]; then
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+            echo "Version not found. Will publish."
+          else
+            echo "Unexpected response ($STATUS) while checking $POM_URL" >&2
+            exit 1
+          fi
+
+      - name: Maven publish
+        if: steps.published.outputs.exists == 'false'
         env:
           GITHUB_USERNAME: ${{ github.actor }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
+          GITHUB_TOKEN: ${{ github.token }}
+        run: ./gradlew publish
